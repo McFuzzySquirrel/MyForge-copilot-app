@@ -45,8 +45,8 @@ no app run IDs because no app execution occurred.
 
 | Phase | Status | Prerequisite acceptance | Current evidence | Exit gate / reviewer |
 | --- | --- | --- | --- | --- |
-| P00 | Ready for review | None | E-P00-001, E-P00-002 | G00 pending |
-| P01 | Blocked: no validated desktop host in planning environment | G00 pending | None; no app probe run | G01 pending |
+| P00 | Accepted | None | E-P00-001, E-P00-002, E-P00-003, E-P00-004 | G00 accepted by @McFuzzySquirrel on 2026-11-26 |
+| P01 | In progress: Linux host available; cross-platform app probes pending | G00 accepted | E-P01-001 | G01 pending |
 | P02 | Not started | G01 pending | None | G02 pending |
 | P03 | Not started | G02 pending | None | G03 pending |
 | P04 | Not started | G03 pending | None | G04 pending |
@@ -100,6 +100,94 @@ no app run IDs because no app execution occurred.
 - Final implementation/document commit: the commit introducing these documents,
   discoverable in this repository's Git history; no self-referential hash needed.
 - Gate acceptance: pending operator review; publishing documentation is not G00.
+
+### E-P00-003: operator gate acceptance
+
+- Work: P00-T04; requirements: APP-15/APP-19; gate: G00.
+- Scope: planning baseline, dependency graph, acceptance coverage and import
+  provenance.
+- Evidence kind: human review.
+- Source and implementation commit: planning documents in the
+  `mcfuzzysquirrel-execute-copilot-app-plan` worktree; baseline commit
+  `00fe362fbdaaf0c2c45a54315a95c684d1ce1d9b`.
+- Environment: GitHub Copilot app planning session; no app runtime execution.
+- Operator and timestamp: @McFuzzySquirrel; 2026-11-26.
+- Procedure: review P00 deliverables, E-P00-001, E-P00-002 and the P00 exit
+  gate; decide whether to accept scope and evidence for P01 to proceed.
+- Expected: accept scope/provenance or return the baseline for revision.
+- Actual: operator accepted the scope and evidence; no revisions requested.
+- Outcome: **passed** for gate acceptance.
+- Artifact locations and digests: this ledger and the P00 phase document; no
+  private diagnostic artifacts.
+- Limitations: this acceptance does not imply app feasibility or implementation
+  completion.
+- Gate decision: accepted G00 by @McFuzzySquirrel on 2026-11-26. P01 may begin,
+  but remains blocked until the actual desktop-host feasibility probe exists.
+
+### E-P00-004: P00 repeat verification
+
+- Work: P00-T01/P00-T02/P00-T03/P00-T04; requirements: APP-15/APP-19; gate: G00.
+- Scope: repeatable import-tree, planning-link, requirement-ID and whitespace
+  verification after P00 acceptance.
+- Evidence kind: documentation analysis.
+- Source and implementation commit: worktree planning changes at
+  `mcfuzzysquirrel-execute-copilot-app-plan`; import commit
+  `00fe362fbdaaf0c2c45a54315a95c684d1ce1d9b`.
+- Environment: Linux worktree; Git 2.x; Python 3.14.
+- Operator and timestamp: GitHub Copilot documentation task; 2026-11-26.
+- Procedure: run `git ls-tree -r 00fe362...`, validate 608 entries, resolve
+  relative Markdown links under `docs/copilot-app/**/*.md`, check APP-01 through
+  APP-20 and V01 through V20 appear in the implementation plan, and run
+  `git diff --check`.
+- Expected: 608 baseline entries; no missing planning links or required IDs;
+  no whitespace errors.
+- Actual: import commit has 608 entries; 71 planning links resolve; all 20
+  APP IDs and all 20 V IDs are present; `git diff --check` passes.
+- Outcome: **passed**.
+- Artifact locations and digests: this ledger and P00/P01 planning documents;
+  no private diagnostics.
+- Limitations: the source checkout object
+  `0994c0a644975b771aa813a1223f8d0ac958f867` is not present in this repository,
+  so direct source-to-destination tree comparison was not rerun. E-P00-001
+  retains the prior comparison result.
+- Supersedes / follow-up: supplements E-P00-001/E-P00-002; no correction needed.
+- Gate decision: current P00 evidence supports accepted G00.
+
+### E-P01-001: Linux desktop and SDK inventory
+
+- Work: P01-T01; requirements: APP-01/APP-12/APP-13/APP-14; gate: G01.
+- Scope: local desktop runtime, CLI, SDK lead and public extension/session
+  capability inventory.
+- Evidence kind: documentation analysis plus live local host inspection.
+- Source and implementation commit: Copilot SDK HEAD
+  `661f503e957165d29a16918efb1b629e6b5db85a`; no implementation commit yet.
+- Environment: Linux ARM64, GitHub Copilot app `1.5.0`,
+  GitHub Copilot CLI `1.0.115`, runtime package `1.0.115-7`.
+- Operator and timestamp: GitHub Copilot documentation task; 2026-11-26.
+- Run/task/attempt/native session: current app project/session
+  `cab8c610-6e59-44a3-adeb-608f35e82619`; no native probe task or attempt ID.
+- Procedure: check the app binary and runtime processes, run
+  `copilot --version` and `copilot --help`, inspect the public GitHub Copilot app
+  app/session/canvas pages and Copilot SDK extension API.
+- Expected: exact host identity, supported native session/extension/canvas
+  surfaces and lifecycle behavior; implementation should fail closed where
+  native ownership is unavailable.
+- Actual: public app documentation identifies macOS/Linux/Windows support,
+  worktrees, session modes, BYOK/model selection and canvas extensions. SDK
+  documentation describes exact extension entry paths, JSON-RPC stdio child
+  processes, opt-in native tools/canvas/slash commands and reload/stop behavior.
+  The live Linux app binary reports `1.5.0`; CLI reports `1.0.115`; runtime
+  processes report `1.0.115-7`.
+- Outcome: **not-run** for G01 feasibility; this inventory is not app integration
+  proof and Windows/macOS providers are absent.
+- Artifact locations and digests: this ledger and P01 phase document.
+  App binary SHA-256:
+  `6bf0600e3b1ef9568a68412ce2ebd40172d048f9464639d00e707c8ba7456e00`.
+- Limitations: no disposable-repository probe, native dispatch/cancel/resume
+  experiment, lifecycle durability check or cross-platform matrix exists.
+  CLI child execution is not app-native proof.
+- Supersedes / follow-up: follow P01-T02 through P01-T05; no prior P01 record.
+- Gate decision: no gate decision; G01 remains pending.
 
 ## Future coverage records
 

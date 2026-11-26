@@ -2,8 +2,9 @@
 
 [Main plan](../IMPLEMENTATION-PLAN.md) | [Previous](00-baseline-and-traceability.md) | [Next](02-contracts-and-core.md)
 
-**Prerequisite:** G00. **Exit:** G01. **Status:** not started; desktop validation
-blocked in the current environment. **Requirements:** APP-01, APP-07, APP-12,
+**Prerequisite:** G00 accepted. **Exit:** G01. **Status:** in-progress; Linux
+desktop validation is now available, while Windows/macOS probes remain not-run.
+**Requirements:** APP-01, APP-07, APP-12,
 APP-13, APP-14; evaluate APP-18 separately, do not require it for G01.
 **Sources:** S-03, S-07, S-13 and the main plan's external API references.
 
