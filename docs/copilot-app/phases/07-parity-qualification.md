@@ -8,9 +8,10 @@
 
 ## Deliverables and work checklist
 
-- [ ] **P07-T01:** Resolve Q05 with maintainer; record actual Windows/macOS/Linux
+- [ ] **P07-T01:** Resolve Q05 with maintainer; record actual Linux
   test hosts, app/CLI/SDK/OS versions and configured provider fixtures. No
   fabricated version floor or unapproved model/budget limit.
+  Windows/macOS host qualification is deferred.
 - [ ] **P07-T02:** Run the parity catalog V01-V18 against implementation commits.
   Expand focused suites only where introduced/fixed behavior needs coverage;
   run comprehensive combined-phase regressions and typechecks afterward.
@@ -22,7 +23,7 @@
   sessions, including local and BYOK, unavailable configuration and rate limits.
   Keep credentials out of public test records; no mock-only provider claim.
 - [ ] **P07-T05:** Complete the requirement coverage matrix and negative-case
-  evidence on all initial platforms. Resolve regressions; retest affected tasks
+  evidence on Linux. Resolve regressions; retest affected tasks
   and full phase checks after fixes. Record any blocked host/test honestly.
 - [ ] **P07-T06:** Operator reviews integrated changes, primary app journey,
   evidence and residual risks. Record qualification decision and supported
@@ -45,7 +46,8 @@ requalifies. Only the operator accepts G07.
 All mandatory requirements have passing current-commit evidence on their
 applicable platform/provider cells and no blocking unresolved work. Existing
 adapter/engine/launcher typechecks and suites pass; app install, main workflow,
-review safety and interruption/recovery pass on Windows/macOS/Linux.
+review safety and interruption/recovery pass on Linux.
+Windows/macOS are not claimed by G07 until dedicated qualification evidence exists.
 
 Compare actual run/task/attempt, report, outputs, validation command results,
 integration and audit identities, not just a green Board. Skipped/not-run tests

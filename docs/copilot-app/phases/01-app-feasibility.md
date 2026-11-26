@@ -2,21 +2,22 @@
 
 [Main plan](../IMPLEMENTATION-PLAN.md) | [Previous](00-baseline-and-traceability.md) | [Next](02-contracts-and-core.md)
 
-**Prerequisite:** G00. **Exit:** G01. **Status:** not started; desktop validation
-blocked in the current environment. **Requirements:** APP-01, APP-07, APP-12,
+**Prerequisite:** G00. **Exit:** G01. **Status:** in progress; desktop host
+identified, integration probes remain blocked pending execution. **Requirements:** APP-01, APP-07, APP-12,
 APP-13, APP-14; evaluate APP-18 separately, do not require it for G01.
 **Sources:** S-03, S-07, S-13 and the main plan's external API references.
 
 ## Deliverables and work checklist
 
-- [ ] **P01-T01:** Record supported app, CLI and extension SDK versions and
+- [x] **P01-T01:** Record supported app, CLI and extension SDK versions and
   exact public API references; compare baseline `HarnessAdapter` requirements
   with extension-callable APIs. Distinguish built-in agent tools, external SDK
   clients and actual app-owned sessions.
-- [ ] **P01-T02:** On trusted disposable repositories in Windows/macOS/Linux,
+- [x] **P01-T02:** On a trusted disposable Linux repository,
   install the smallest probe extension/canvas. Capture the actual composition
   root, workspace identity, trust prompts, permissions and extension ownership.
-  This future probe must be reviewable and removable; no production behavior.
+  This probe is reviewable and removable; no production behavior.
+  Windows/macOS execution is deferred until a host is available.
 - [ ] **P01-T03:** Demonstrate create/dispatch, observe, identify terminal state,
   cancel and resume for native app sessions, including specialist/model choice.
   Capture requested versus actual route and correlation IDs. No independent
@@ -24,9 +25,10 @@ APP-13, APP-14; evaluate APP-18 separately, do not require it for G01.
 - [ ] **P01-T04:** Exercise app quit/restart, window close, canvas close, plugin
   reload and duplicate instances. Establish host ownership and reachable durable
   state; prove safe reconciliation or identify the exact missing capability.
-- [ ] **P01-T05:** Publish a capability matrix by platform/version/provider:
+- [ ] **P01-T05:** Publish a capability matrix for Linux platform/version/provider:
   supported, unsupported, experimental, or not tested. Resolve Q01/Q02 and
   document candidate approaches and a human go/no-go decision.
+  Add Windows/macOS cells only after those probes run.
 
 Outputs: capability report, probe source/procedure, redacted observations and
 explicit decision. Exact artifact location and runtime dependencies are chosen
@@ -35,19 +37,20 @@ only after the supported API is identified. Probe code is future work.
 ## Specific future sub-agent opportunities
 
 A documentation researcher can inventory versioned APIs without accessing
-credentials. Platform specialists can independently run the same approved probe
-on distinct Windows/macOS/Linux test hosts. A runtime reviewer can compare
-results against APP-01/APP-07 without modifying the probe or scheduler.
+credentials. A Linux runtime specialist can run the approved probe on the
+maintainer's Linux host. Windows/macOS platform specialists may run the same
+probe only after separate host access is available. A runtime reviewer can
+compare results against APP-01/APP-07 without modifying the probe or scheduler.
 Coordinator owns the shared probe/API contract; platform agents must not
 rewrite that contract or infer support from another platform.
 
 ## Validation and exit gate G01
 
-Run V01/V02 and lifecycle portions of V07/V08/V16 in actual app sessions.
+Run V01/V02 and lifecycle portions of V07/V08/V16 in actual Linux app sessions.
 Capture install/log paths, process ownership and native session IDs without
 credentials. App-native lifecycle must permit deterministic orchestration,
-truthful terminal outcomes, independent validation and recovery on all initial
-platforms; evidence cannot consist solely of screenshots, release notes or mocks.
+truthful terminal outcomes, independent validation and recovery on Linux;
+evidence cannot consist solely of screenshots, release notes or mocks.
 
 Operator accepts a supported approach or records **no-go** with missing APIs.
 If mandatory support is absent or not tested, P02-P08 remain blocked pending

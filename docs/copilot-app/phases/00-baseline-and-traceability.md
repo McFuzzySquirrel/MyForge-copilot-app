@@ -2,8 +2,8 @@
 
 [Main plan](../IMPLEMENTATION-PLAN.md) | [Evidence ledger](../evidence/README.md)
 
-**Prerequisites:** none. **Exit:** G00. **Status:** baseline imported; gate pending
-operator review. **Requirements:** APP-15, APP-19. **Sources:** S-01, S-12.
+**Prerequisites:** none. **Exit:** G00. **Status:** accepted; G00 passed on
+2026-11-26. **Requirements:** APP-15, APP-19. **Sources:** S-01, S-12.
 
 ## Deliverables and work checklist
 
@@ -17,7 +17,7 @@ operator review. **Requirements:** APP-15, APP-19. **Sources:** S-01, S-12.
 - [x] **P00-T03:** Establish the evidence schema, phase ledger and record
   template with honest `not-run`, `blocked` and failure states. Evidence:
   E-P00-002; this is evidence infrastructure, not app-run evidence.
-- [ ] **P00-T04:** Operator reviews scope, dependencies, acceptance coverage and
+- [x] **P00-T04:** Operator reviews scope, dependencies, acceptance coverage and
   baseline provenance; record name/date/decision and evidence IDs for G00.
 
 ## Specific future sub-agent opportunities

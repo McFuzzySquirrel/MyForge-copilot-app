@@ -45,8 +45,8 @@ no app run IDs because no app execution occurred.
 
 | Phase | Status | Prerequisite acceptance | Current evidence | Exit gate / reviewer |
 | --- | --- | --- | --- | --- |
-| P00 | Ready for review | None | E-P00-001, E-P00-002 | G00 pending |
-| P01 | Blocked: no validated desktop host in planning environment | G00 pending | None; no app probe run | G01 pending |
+| P00 | Accepted | None | E-P00-001, E-P00-002, E-P00-003 | G00 accepted |
+| P01 | In progress: Linux desktop host and probe complete; dispatch/lifecycle work remains | G00 accepted | E-P01-001, E-P01-002, E-P01-003 | G01 pending |
 | P02 | Not started | G01 pending | None | G02 pending |
 | P03 | Not started | G02 pending | None | G03 pending |
 | P04 | Not started | G03 pending | None | G04 pending |
@@ -100,6 +100,155 @@ no app run IDs because no app execution occurred.
 - Final implementation/document commit: the commit introducing these documents,
   discoverable in this repository's Git history; no self-referential hash needed.
 - Gate acceptance: pending operator review; publishing documentation is not G00.
+
+### E-P00-003: operator G00 acceptance
+
+- Work: P00-T04; requirements: APP-15/APP-19; scope: baseline provenance,
+  phase dependencies and acceptance coverage.
+- Evidence kind: human review.
+- Source and implementation commit: `ed40fe15dbf37bcec42ab95340abd03a3089b8f8`
+  with this evidence update pending.
+- Environment: GitHub Copilot app worktree session
+  `7c89ffb9-e896-4ac1-a1d2-cf5483d39d0d`.
+- Operator and timestamp: McFuzzySquirrel, 2026-11-26T20:43:30.131+02:00.
+- Procedure: the operator explicitly authorized execution after reviewing the
+  P00 checkpoint and identified P00-T04 as the remaining gate.
+- Expected: operator acceptance of scope, dependencies, acceptance coverage and
+  baseline provenance; no app implementation may be inferred from G00.
+- Actual: operator authorized execution to proceed, while the plan still
+  requires P01 desktop capability evidence before P02-P08.
+- Outcome: **passed**; G00 is accepted for planning progression.
+- Artifact locations and digests: this ledger and
+  `docs/copilot-app/phases/00-baseline-and-traceability.md`.
+- Limitations: this acceptance does not validate the app architecture or replace
+  P01's real desktop integration evidence.
+- Supersedes/follow-up: supersedes the pending gate status from E-P00-002.
+- Gate decision: McFuzzySquirrel accepted G00 at the operator timestamp above.
+
+### E-P01-001: API and host inventory
+
+- Work: P01-T01; requirements: APP-01, APP-07, APP-12, APP-13, APP-14.
+- Evidence kind: documentation analysis and local environment inventory.
+- Source and implementation commit: `ed40fe15dbf37bcec42ab95340abd03a3089b8f8`
+  with this evidence update pending.
+- Environment: GitHub Copilot desktop app `1.5.0`, stamped release build
+  (`is_local_source_build: false`); Linux arm64 kernel
+  `7.0.0-1024-raspi`; GitHub Copilot CLI `1.0.115`; Node.js `v24.22.2`;
+  `@microsoft/copilot-sdk` npm latest `2.0.3`.
+- Operator and timestamp: GitHub Copilot documentation task,
+  2026-11-26T20:46:02.186+02:00.
+- Procedure: inspect the app overview and pinned public SDK main sources for
+  extension, session, canvas and lifecycle surfaces. Record local CLI/OS
+  versions and query the app build through `get_app_info`. Compare the findings
+  with P01's V01/V02 and V07/V08 exit criteria.
+- Expected: exact app/CLI/SDK versions and public APIs for dispatch,
+  observation, cancellation, resume and lifecycle, plus an actual desktop probe.
+- Actual: public sources identify CLI extension child-process ownership,
+  `joinSession()`, app-owned foreground sessions, canvas declarations,
+  request-driven activation and platform lifecycle differences. The serving
+  host is verified as GitHub Copilot desktop app `1.5.0`, with CLI `1.0.115`
+  and published SDK `2.0.3`. The canvas/workflow surfaces remain experimental
+  in the public SDK sources, and this inventory does not prove dispatch,
+  ownership or lifecycle behavior.
+- Outcome: **passed** for P01-T01; P01 remains blocked at G01.
+- Artifact locations and digests:
+  - [GitHub Copilot app overview](https://docs.github.com/en/copilot/concepts/copilot-surfaces/github-copilot-app),
+    access 2026-11-26.
+  - [Copilot CLI Extensions documentation](https://github.com/microsoft/copilot-sdk/blob/main/nodejs/docs/extensions.md),
+    access 2026-11-26.
+  - [Extension entry API](https://github.com/microsoft/copilot-sdk/blob/main/nodejs/src/extension.ts),
+    access 2026-11-26.
+  - [Canvas API](https://github.com/microsoft/copilot-sdk/blob/main/nodejs/src/canvas.ts),
+    access 2026-11-26.
+- Limitations: no Windows or macOS host, model/provider route, permission prompt,
+  process/session lifecycle probe, or real app integration result is available.
+- Supersedes/follow-up: follow P01-T02 through P01-T05 on a verified desktop
+  host; retain P01 as blocked until G01 evidence is complete.
+- Gate decision: no G01 decision; P02-P08 remain blocked.
+
+### E-P01-002: Linux project extension and canvas probe
+
+- Work: P01-T02 (Linux partial), P01-T04 (reload portion only);
+  requirements: APP-01, APP-07, APP-12, APP-20; scenario: V02, plus reload
+  portion of V08.
+- Evidence kind: real app integration.
+- Source and implementation commit: probe work performed from
+  `ed40fe15dbf37bcec42ab95340abd03a3089b8f8` then removed from the worktree.
+- Environment: GitHub Copilot desktop app `1.5.0`; Copilot CLI `1.0.115`;
+  Linux arm64 kernel `7.0.0-1024-raspi`; app session
+  `7c89ffb9-e896-4ac1-a1d2-cf5483d39d0d`.
+- Operator and timestamp: GitHub Copilot app execution,
+  2026-11-26T20:47:24.401+02:00.
+- Run/task/attempt/native session: no task or attempt; native session
+  `7c89ffb9-e896-4ac1-a1d2-cf5483d39d0d`.
+- Prerequisite gate records: G00 accepted by E-P00-003.
+- Procedure:
+  1. Scaffold a project-scoped read-only canvas extension under
+     `.github/extensions/p01-feasibility-probe/`.
+  2. Reload extensions and inspect the discovered process.
+  3. Open canvas instance `p01-probe-linux-1`, verify its loopback HTTP
+     endpoint, invoke `probe_status`, and observe the returned session ID.
+  4. Reload extensions, verify a replacement process/PID, reopen the canvas,
+     and invoke the action again.
+  5. Remove the probe files and reload discovery.
+- Expected:
+  - Project discovery finds and starts the probe without credentials or shell
+    access.
+  - The app owns the session and supplies its native session ID to the canvas
+    action.
+  - Reload replaces the extension process and preserves the reopen/action path.
+  - Probe removal leaves no project extension contribution.
+- Actual:
+  - First process PID `44665` joined session
+    `7c89ffb9-e896-4ac1-a1d2-cf5483d39d0d`; the canvas opened at
+    `http://127.0.0.1:34779/`.
+  - `probe_status` returned
+    `{"ok":true,"instanceId":"p01-probe-linux-1","sessionId":"7c89ffb9-e896-4ac1-a1d2-cf5483d39d0d"}`.
+  - Reload started replacement process PID `45456`; the canvas reopened at
+    `http://127.0.0.1:45435/`, and `probe_status` still returned the same native
+    session ID.
+  - No credentials or shell commands were requested by the probe.
+- Outcome: **passed** for the Linux probe/checks. Windows/macOS are explicitly
+  deferred by scope decision E-P01-003, not treated as failed mandatory work.
+- Artifact locations and digests: extension log files
+  `/home/mcsquirrel/.copilot/logs/process-1795719551500-44665.log` and
+  `/home/mcsquirrel/.copilot/logs/process-1795719578794-45456.log`;
+  probe sources removed after execution.
+- Limitations: only Linux arm64 was exercised. Trust prompts, permission prompts
+  and disposable-repository isolation are not yet tested.
+  This evidence does not prove dispatch/cancellation/resume or continuation
+  behavior.
+- Supersedes/follow-up: P01-T03, P01-T04 and P01-T05 remain incomplete.
+- Gate decision: no G01 decision.
+
+### E-P01-003: Linux-only initial qualification scope decision
+
+- Work: P01-T02/P01-T05/P07-T01/P07-T05; requirements: APP-14, APP-19;
+  scenarios: V16.
+- Evidence kind: human review and scope revision.
+- Source and implementation commit: planning commit
+  `ed40fe15dbf37bcec42ab95340abd03a3089b8f8` and later planning edits.
+- Environment: GitHub Copilot desktop app `1.5.0`; Linux arm64
+  `7.0.0-1024-raspi`; no Windows or macOS test host available.
+- Operator and timestamp: McFuzzySquirrel, 2026-11-26T21:03:08.180+02:00.
+- Procedure: operator approved deferring Windows/macOS qualification because
+  the maintainer is not working on those platforms. Update the active initial
+  scope and validation matrix so Linux is claimed and Windows/macOS are not.
+- Expected: D-08 is amended by an explicit Linux-only initial-scope decision;
+  APP-14, V16 and P07 no longer imply unverified Windows/macOS release claims.
+- Actual: the initial scope is Linux-only. Windows/macOS evidence may be added
+  later without changing Linux implementation or evidence. G07 will not claim
+  cross-platform support until dedicated hosts pass.
+- Outcome: **passed** as a planning scope decision.
+- Artifact locations and digests:
+  `docs/copilot-app/IMPLEMENTATION-PLAN.md`,
+  `docs/copilot-app/phases/01-app-feasibility.md`,
+  `docs/copilot-app/phases/07-parity-qualification.md`.
+- Limitations: this does not retire or prove future Windows/macOS support.
+- Supersedes/follow-up: supersedes the "all three platforms" initial-scope
+  interpretation for E-P01-002 and future P07 planning. It does not supersede
+  the original D-08 approval record.
+- Gate decision: accepted scope revision; G01/G07 remain Linux-gated.
 
 ## Future coverage records
 

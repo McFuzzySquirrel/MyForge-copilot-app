@@ -28,6 +28,7 @@ requirements contract before implementation begins.
 | D-06 | Preserve the original repository and copied standalone paths | App edition must not change upstream or silently replace existing harnesses |
 | D-07 | Pause/resume may ship first; continuation after app closure is gated | User-selected initial-release boundary |
 | D-08 | Initial supported platforms: Windows, macOS and Linux | User-selected platform scope |
+| D-08-L | Linux-only initial qualification; Windows/macOS qualification deferred until hosts are available | Operator scope decision on 2026-11-26 |
 | D-09 | Planning only now; do not implement or start sub-agents | Current request |
 
 No release date, model list, numeric concurrency limit, budget cap, SDK version,
@@ -90,7 +91,7 @@ requirement. P01 determines whether this architecture is supportable.
 | APP-11 | Canvas is a projection of authoritative state and provides truthful controls, blockers, attempt evidence and accessible review | P06 | V13, V14 |
 | APP-12 | Skills, agents and plugin load in supported app versions without overwriting project files; entry points are reachable | P05, P06 | V02, V10 |
 | APP-13 | App-selected Copilot, BYOK and local-provider routes propagate to intended task sessions; missing support fails visibly, never silently reroutes | P03, P07 | V15 |
-| APP-14 | All initial-release mandatory scenarios pass on Windows, macOS and Linux; limitations are explicit and block unsupported claims | P07 | V16 |
+| APP-14 | All initial-release mandatory scenarios pass on Linux; Windows/macOS remain explicitly deferred and block unsupported cross-platform claims | P07 | V16 |
 | APP-15 | Original repository remains untouched; copied standalone tooling retains regression behavior and upstream changes have provenance | P00, P02, P08 | V17, V18 |
 | APP-16 | Import/migration is explicit, recoverable and preserves requirements, task identities, evidence and user work; uninstall does not delete project content | P04, P08 | V18 |
 | APP-17 | Run/task/attempt, model/provider and verified gate outcomes remain inspectable; absent usage is unavailable, not fabricated zero or USD credits | P03, P06 | V06, V13, V15 |
@@ -150,7 +151,7 @@ the layout. Stub/mock validation is necessary but never proves app integration.
 | V13 | Canvas state agrees with persisted outcomes; logs, blockers, caveats, costs, credits and attempt links are truthful |
 | V14 | Keyboard/screen-reader/reduced-motion checks; stale UI actions, origin/path permissions, untrusted artifact text and missing host access |
 | V15 | Configured Copilot/BYOK/local route actually used by each task; missing model/auth/rate limit fails visibly; no credentials in evidence |
-| V16 | Mandatory supported scenarios on Windows/macOS/Linux, including file paths, shutdown, native tooling and extension install |
+| V16 | Mandatory supported Linux scenarios, including file paths, shutdown, native tooling and extension install; Windows/macOS scenarios are deferred until dedicated hosts exist |
 | V17 | Adapter/engine/launcher regression suites preserve copied standalone behavior; original upstream repository untouched |
 | V18 | Fresh repo, completed project, incremental feature, interrupted import, incompatible state and rollback/uninstall without content loss |
 | V19 | Close app with continuation enabled; host continues scheduling and verification; reopen and reconcile identity/evidence with no sidecar |
@@ -200,8 +201,9 @@ Open decisions must be resolved with the operator before the dependent work:
 - **Q04 / P03:** supported provider/model matrix, concurrency and usage/budget
   controls. Preserve existing engine options where meaningful; do not invent
   caps or bypass app policy.
-- **Q05 / P07:** minimum OS/app versions and specific real test hosts, model
-  endpoints and operator access for all three platforms.
+- **Q05 / P07:** minimum Linux OS/app versions and real test hosts, model
+  endpoints and operator access. Windows/macOS are deferred until dedicated hosts
+  and operator access are available.
 - **Q06 / P08:** distribution channel, plugin naming/versioning and upstream
   sync cadence; choose with the maintainer before publishing a plugin.
 - **Q07 / P08:** diagnostic retention/access policy and release approvers; do
