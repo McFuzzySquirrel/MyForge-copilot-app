@@ -1,19 +1,30 @@
 
 # MyForge
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Bash](https://img.shields.io/badge/Bash-4EAA25?logo=gnubash&logoColor=fff)](https://en.wikipedia.org/wiki/Bash_(Unix_shell))
+[![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=fff)](https://learn.microsoft.com/powershell/)
+
 > **Copilot app edition: planning only.** This repository contains a fresh
 > MyForge source baseline and a [multi-phase implementation plan](docs/copilot-app/IMPLEMENTATION-PLAN.md)
 > with [execution evidence tracking](docs/copilot-app/evidence/README.md).
 > No app plugin or app-native engine has been implemented. The standalone
 > overview and commands below describe the inherited MyForge baseline.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Bash](https://img.shields.io/badge/Bash-4EAA25?logo=gnubash&logoColor=fff)
-![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=fff)
-
 > MyForge turns an idea into a reviewed PRD, a specialist agent team, and an autonomous build.
 
-**Latest: v3.130** — see [docs/updates.md](docs/updates.md) for release notes.
+**Latest: v3.131** — see [docs/updates.md](docs/updates.md) for release notes.
+
+## Table of Contents
+
+[About](#about) · [Features](#features) · [Tech Stack](#tech-stack) ·
+[Architecture](#architecture) · [Project Structure](#project-structure) ·
+[Getting Started](#getting-started) · [Configuration](#configuration) ·
+[Security](#security) · [How to Contribute](#how-to-contribute) ·
+[What's Next](#whats-next) · [License](#license) ·
+[Acknowledgements](#acknowledgements) · [Author](#author)
+
+## About
 
 MyForge is a PRD-first workflow for turning product requirements into working software. It combines structured planning, agent-based implementation, and execution orchestration in one path so a project can move from concept to build without losing the review checkpoints that matter.
 
@@ -27,7 +38,7 @@ Generated agents can declare relevant project procedures with
 design is documented as a [portable pattern](docs/patterns/agent-skill-associations.md)
 for projects that do not use MyForge.
 
-## Highlights
+## Features
 
 - Keeps the PRD as the quality gate before implementation begins.
 - Generates a specialist agent team from the PRD instead of relying on a single generic assistant.
@@ -46,19 +57,39 @@ screenshot walkthrough, including current responsive captures.
 
 
 
-## Quick start
+## Tech Stack
+
+The standalone launcher, compiler and engine are TypeScript/Node.js packages;
+the Console serves a local web interface. Git and a configured agent harness
+support repository execution. See the [administrator guide](docs/admin-guide.md).
+
+## Architecture
+
+The launcher handles intake; the execution adapter compiles the manifest; the
+workflow engine schedules and verifies tasks; the Console projects state and
+controls. See [architecture](ARCHITECTURE.md) and the [ADR index](docs/adr/README.md).
+
+## Project Structure
+
+- `scripts/forge-launcher/` — launcher and Console.
+- `templates/skills/` and `templates/agents/` — bootstrapped tooling and agents.
+- `docs/` — guides, change history, decisions and app-edition plans.
+
+<a id="quick-start"></a>
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.12+ for the locked launcher dependencies (the launcher manifest
+  still declares 18+)
 - Git
 - A compatible agent harness such as GitHub Copilot, Claude Code, or opencode
 
 ### Option 1: Run from a clone
 
 ```bash
-git clone https://github.com/McFuzzySquirrel/mcfuzzy-agent-forge.git
-cd mcfuzzy-agent-forge
+git clone https://github.com/McFuzzySquirrel/MyForge-copilot-app.git
+cd MyForge-copilot-app
 cd scripts/forge-launcher
 npm install
 npm run build
@@ -75,8 +106,8 @@ The npm package is not published yet, but the current pre-release is
 `forge-launcher@1.0.0-beta.6`. You can install it locally from this repository:
 
 ```bash
-git clone https://github.com/McFuzzySquirrel/mcfuzzy-agent-forge.git
-cd mcfuzzy-agent-forge/scripts/forge-launcher
+git clone https://github.com/McFuzzySquirrel/MyForge-copilot-app.git
+cd MyForge-copilot-app/scripts/forge-launcher
 npm install
 npm pack
 npm install -g ./forge-launcher-1.0.0-beta.6.tgz
@@ -108,6 +139,19 @@ For the manual prompting flow and the CLI’s expected prompts, see [docs/prompt
 > [!NOTE]
 > The canonical launcher runtime lives in [scripts/forge-launcher](scripts/forge-launcher). The shell wrappers are compatibility shims for existing workflows.
 
+## Configuration
+
+The Console defaults to local port `4300`; engine concurrency defaults to one
+task. See the [administrator guide](docs/admin-guide.md#configuration) and
+[launcher reference](docs/forge-launcher.md) for flags and environment variables.
+
+## Security
+
+Use trusted workspaces and protect credentials and logs. The standalone
+Copilot engine adapter defaults to `--yolo`; the Console token is not user
+authentication. See [security guidance](docs/admin-guide.md#security-and-privacy-checklist).
+Report suspected vulnerabilities privately to the repository maintainer.
+
 ## How it works
 
 1. Capture your idea and review the PRD.
@@ -127,6 +171,10 @@ For the manual prompting flow and the CLI’s expected prompts, see [docs/prompt
 
 ## Documentation
 
+- [User guide](docs/user-guide.md)
+- [Administrator guide](docs/admin-guide.md)
+- [Architecture decision index](docs/adr/README.md)
+- [v3.131 draft release notes](docs/releases/v3.131.md)
 - [docs/task-contracts.md](docs/task-contracts.md)
 - [docs/forge-launcher.md](docs/forge-launcher.md)
 - [docs/forge-console.md](docs/forge-console.md)
@@ -154,3 +202,30 @@ npm install
 npm test
 npm run typecheck
 ```
+
+## How to Contribute
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and review expectations.
+
+## What's Next
+
+The [Copilot app edition](docs/copilot-app/IMPLEMENTATION-PLAN.md) is planned
+for Linux first. Its app-native execution and recovery remain unproven; Windows
+and macOS are deferred to a possible v2.
+
+## License
+
+The repository includes an [MIT license](LICENSE). The launcher package manifest
+currently declares ISC; this metadata discrepancy needs maintainer review.
+
+## Acknowledgements
+
+The standalone source baseline was imported from
+[mcfuzzy-agent-forge](https://github.com/McFuzzySquirrel/mcfuzzy-agent-forge);
+see the [source provenance](docs/copilot-app/IMPLEMENTATION-PLAN.md#source-baseline-and-boundaries).
+
+## Author
+
+Maintained by [McFuzzySquirrel](https://github.com/McFuzzySquirrel). Use the
+[issue tracker](https://github.com/McFuzzySquirrel/MyForge-copilot-app/issues)
+for questions and bug reports.

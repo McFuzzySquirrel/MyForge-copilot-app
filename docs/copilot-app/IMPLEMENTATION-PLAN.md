@@ -27,8 +27,12 @@ requirements contract before implementation begins.
 | D-05 | App-managed extensions allowed; no separate engine sidecar | Prior execution-boundary clarification |
 | D-06 | Preserve the original repository and copied standalone paths | App edition must not change upstream or silently replace existing harnesses |
 | D-07 | Pause/resume may ship first; continuation after app closure is gated | User-selected initial-release boundary |
-| D-08 | Initial supported platforms: Windows, macOS and Linux | User-selected platform scope |
-| D-09 | Planning only now; do not implement or start sub-agents | Current request |
+| D-08 | Initial release targets Linux; consider Windows and macOS for v2 after evaluating the Linux release | User revision, 2026-11-26 |
+| D-09 | Initial work was planning only; implementation proceeds only after prerequisite gates | Original planning request; subsequent execution request |
+| D-10 | Evaluate workflow-owned subagents as app-managed task execution; separate app project sessions are not mandatory | User-approved scope revision, 2026-11-26; recovery, isolation, routing and review gates remain mandatory |
+| D-11 | Initial release runs app-managed tasks sequentially (concurrency 1) in the session workspace; concurrent isolated execution is deferred | User-approved scope revision, 2026-11-26 (E-P01-023); clean-tree preflight, attribution and recovery remain mandatory |
+| D-12 | Initial release supports task session scope only; phase session scope is deferred and must be rejected visibly | User-approved scope revision, 2026-11-26 (E-P01-026); workflow workers cannot continue a prior worker conversation |
+| D-13 | A worker cancelled by app quit is recorded as an interrupted attempt; after reconciliation of its partial workspace changes, retry starts a new attempt with its own worker allowance rather than resuming the cancelled run with a raised limit | User-approved recovery policy, 2026-11-26 (E-P01-027); retry classification and attempt limits still apply |
 
 No release date, model list, numeric concurrency limit, budget cap, SDK version,
 distribution channel or remote execution topology has been approved.
@@ -83,14 +87,14 @@ requirement. P01 determines whether this architecture is supportable.
 | APP-04 | Task dependencies, one ready task per owner and strict phase gates retain baseline semantics; failed prerequisite never dispatches dependents | P03 | V04 |
 | APP-05 | Completion requires applicable output, structured report and declared validation gates; no-op, missing output, unresolved work or failing commands do not complete | P03 | V05 |
 | APP-06 | Retry classification, attempt diagnostics, timeouts and cancellation remain explicit; cancelled or indeterminate work is never successful | P03, P04 | V06, V07 |
-| APP-07 | Persisted ownership, in-flight reconciliation and safe pause/resume survive app/session/plugin interruption without double dispatch | P04 | V07, V08 |
-| APP-08 | Concurrent work is isolated and attributed to the correct task; integration and per-task commit semantics preserve unrelated user work | P03, P04 | V09 |
+| APP-07 | Persisted ownership, in-flight reconciliation and safe pause/resume survive app/session/plugin interruption without double dispatch; a quit-cancelled worker becomes an interrupted attempt and retries as a new attempt after reconciliation (D-13) | P04 | V07, V08 |
+| APP-08 | Sequential work is attributed to the correct task; integration and per-task commit semantics preserve unrelated user work. Concurrent isolated execution is deferred for the initial release (D-11) and must fail visibly if requested | P03, P04 | V09 |
 | APP-09 | Human approval is content-bound, invalidated by relevant edits and only issued by a real operator; Autopilot cannot approve itself | P04, P05 | V11 |
-| APP-10 | Task/phase session scopes, manual selections plus prerequisites, resume and replay retain supported baseline behavior | P03, P04 | V12 |
+| APP-10 | Task session scope, manual selections plus prerequisites, resume and replay retain supported baseline behavior. Phase session scope is deferred for the initial release (D-12) and must fail visibly if requested | P03, P04 | V12 |
 | APP-11 | Canvas is a projection of authoritative state and provides truthful controls, blockers, attempt evidence and accessible review | P06 | V13, V14 |
 | APP-12 | Skills, agents and plugin load in supported app versions without overwriting project files; entry points are reachable | P05, P06 | V02, V10 |
-| APP-13 | App-selected Copilot, BYOK and local-provider routes propagate to intended task sessions; missing support fails visibly, never silently reroutes | P03, P07 | V15 |
-| APP-14 | All initial-release mandatory scenarios pass on Windows, macOS and Linux; limitations are explicit and block unsupported claims | P07 | V16 |
+| APP-13 | App-selected Copilot, BYOK and local-provider routes propagate to intended task executions; missing support fails visibly, never silently reroutes | P03, P07 | V15 |
+| APP-14 | All initial-release mandatory scenarios pass on Linux; Windows/macOS remain unsupported until separately qualified; limitations block unsupported claims | P07 | V16 |
 | APP-15 | Original repository remains untouched; copied standalone tooling retains regression behavior and upstream changes have provenance | P00, P02, P08 | V17, V18 |
 | APP-16 | Import/migration is explicit, recoverable and preserves requirements, task identities, evidence and user work; uninstall does not delete project content | P04, P08 | V18 |
 | APP-17 | Run/task/attempt, model/provider and verified gate outcomes remain inspectable; absent usage is unavailable, not fabricated zero or USD credits | P03, P06 | V06, V13, V15 |
@@ -122,7 +126,7 @@ continuation feasibility gate. Investigation does not authorize implementation.
 | P04 | [Recovery and safety](phases/04-recovery-and-safety.md) | G03 | G04: durable single owner, pause/resume and human gate |
 | P05 | [Authoring and packaging](phases/05-authoring-and-packaging.md) | G04 | G05: reachable reviewed authoring and installable bundle |
 | P06 | [Canvas and control](phases/06-canvas-and-control.md) | G04 | G06: projection, controls and accessible evidence |
-| P07 | [Parity qualification](phases/07-parity-qualification.md) | G05, G06 | G07: cross-platform/provider end-to-end qualification |
+| P07 | [Parity qualification](phases/07-parity-qualification.md) | G05, G06 | G07: Linux/provider end-to-end qualification |
 | P08 | [Migration and rollout](phases/08-migration-and-rollout.md) | G07 | G08: reviewed rollout, rollback and upstream maintenance |
 | P09 | [Continuation after close](phases/09-continuation-after-close.md) | G08 + continuation feasibility | G09: optional continuation independently qualified |
 
@@ -136,21 +140,21 @@ the layout. Stub/mock validation is necessary but never proves app integration.
 | ID | Required behavior to exercise |
 | --- | --- |
 | V01 | Process/session inspection shows app-managed dispatch only; no engine sidecar, hidden `copilot -p` or unauthorized runtime |
-| V02 | Install/load/trust/version failure, native owner selection, session IDs and lifecycle callbacks in an actual desktop app |
+| V02 | Install/load/trust/version failure, actual task owner and identity, and lifecycle callbacks in an actual desktop app |
 | V03 | Valid canonical feature graph; missing IDs/owners, cycles, traversal/symlinks, oversized references and invalid contracts fail |
 | V04 | Independent tasks, owner conflicts, strict prerequisite phases, optional task semantics and failed phase validation |
 | V05 | Missing outputs, no-op, invalid/missing report, unresolved acceptance work, failing commands and legitimate completion |
 | V06 | Retryable versus terminal failures; timeout and cancellation; immutable attempt archives and honest gate/usage outcomes |
 | V07 | Close/quit/restart during dispatch, verification and integration; kill only owned test processes; reconcile indeterminate work without duplication |
 | V08 | Duplicate canvas/extension/session instances, plugin reload/update, stale owner, corrupt or partially written state |
-| V09 | Parallel isolated edits, same-file conflicts, clean-tree preflight, commit failure and unrelated dirty/staged user files |
+| V09 | Sequential task attribution, clean-tree preflight, partial changes from cancelled attempts, commit failure and unrelated dirty/staged user files; rejection of concurrency above 1 (parallel isolated edits deferred, D-11) |
 | V10 | Idea -> PRD/features -> real review -> team/skills -> compile -> deliberate start -> bounded implementation |
 | V11 | Human task blocks unattended execution; agent/API cannot create approval; relevant edit invalidates evidence; operator journey succeeds |
-| V12 | Manual single/range/list with transitive dependencies; phase/task session scope; invalid combinations, replay and manifest reconciliation |
+| V12 | Manual single/range/list with transitive dependencies; task session scope and visible rejection of phase scope (D-12); invalid combinations, replay and manifest reconciliation |
 | V13 | Canvas state agrees with persisted outcomes; logs, blockers, caveats, costs, credits and attempt links are truthful |
 | V14 | Keyboard/screen-reader/reduced-motion checks; stale UI actions, origin/path permissions, untrusted artifact text and missing host access |
 | V15 | Configured Copilot/BYOK/local route actually used by each task; missing model/auth/rate limit fails visibly; no credentials in evidence |
-| V16 | Mandatory supported scenarios on Windows/macOS/Linux, including file paths, shutdown, native tooling and extension install |
+| V16 | Mandatory supported scenarios on Linux, including file paths, shutdown, native tooling and extension install; qualify Windows/macOS separately before later support |
 | V17 | Adapter/engine/launcher regression suites preserve copied standalone behavior; original upstream repository untouched |
 | V18 | Fresh repo, completed project, incremental feature, interrupted import, incompatible state and rollback/uninstall without content loss |
 | V19 | Close app with continuation enabled; host continues scheduling and verification; reopen and reconcile identity/evidence with no sidecar |
@@ -178,7 +182,7 @@ not merely call internal functions.
 
 | ID | Risk / unknown | Owner and blocking point | Required response |
 | --- | --- | --- | --- |
-| R01 | Agent-only built-in tools may not be callable by extensions; SDK sessions may be external, not app-owned | P01 / G01 | Demonstrate supported ownership/dispatch; stop parity work if absent |
+| R01 | Workflow-owned subagents may lack required lifecycle, isolation, routing or phase-session semantics; SDK-created sessions may be external | P01 / G01 | Demonstrate supported app-managed dispatch and required behavior; stop parity work if absent |
 | R02 | Extension shutdown, reload and experimental API changes may invalidate durability assumptions | P01, P04 / G01, G04 | Pin tested versions, inspect lifecycle and reconcile durable attempts |
 | R03 | Local scheduler cannot continue when its host is gone; cloud may not load extensions or local providers | P09 / G09 | No continuation claim or setting until verified; no hidden cloud migration |
 | R04 | App worktrees/session ownership may conflict with engine sandboxes and single-writer integration | P03, P04 / G03, G04 | One documented isolation owner, conflict tests and serialized integration |
@@ -187,7 +191,7 @@ not merely call internal functions.
 | R07 | Public evidence can leak credentials, prompts, private paths or proprietary project content | All phases | Keep raw diagnostics private; redact public records, digest and limit access |
 | R08 | State migration or upstream sync can invalidate completed work or overwrite edits | P04, P08 / G04, G08 | Backups, explicit compatibility, stable IDs and reviewed sync provenance |
 | R09 | Accessible bidirectional canvas actions and stale views may drift from engine truth | P06 / G06 | Revision-aware controls, accessibility checks and server-side authority |
-| R10 | Cross-platform app/SDK/tool support may differ | P01, P07 / G01, G07 | Platform capability matrix; no all-platform release without passing evidence |
+| R10 | App/SDK/tool support may differ across platforms | P01, P07 / G01, G07 | Qualify Linux initially; do not claim Windows/macOS support without separate passing evidence |
 
 Open decisions must be resolved with the operator before the dependent work:
 
@@ -200,8 +204,9 @@ Open decisions must be resolved with the operator before the dependent work:
 - **Q04 / P03:** supported provider/model matrix, concurrency and usage/budget
   controls. Preserve existing engine options where meaningful; do not invent
   caps or bypass app policy.
-- **Q05 / P07:** minimum OS/app versions and specific real test hosts, model
-  endpoints and operator access for all three platforms.
+- **Q05 / P07:** minimum Linux/app versions and specific real Linux test hosts,
+  model endpoints and operator access. Choose Windows/macOS qualification
+  requirements separately if those platforms are pursued for v2.
 - **Q06 / P08:** distribution channel, plugin naming/versioning and upstream
   sync cadence; choose with the maintainer before publishing a plugin.
 - **Q07 / P08:** diagnostic retention/access policy and release approvers; do
@@ -243,5 +248,6 @@ guarantees. Capture exact version/permalink/access date in P01 evidence.
 - [Extension entry API](https://github.com/microsoft/copilot-sdk/blob/main/nodejs/src/extension.ts)
 - [Canvas API](https://github.com/microsoft/copilot-sdk/blob/main/nodejs/src/canvas.ts)
 
-Current planning environment has Copilot CLI 1.0.112 but no verified active
-desktop app. CLI documentation and mock tests cannot pass G01.
+This conversation is served by a desktop app; see E-P01-002 for the observed
+version and its limits. CLI documentation, this session and mock tests alone
+cannot pass G01.

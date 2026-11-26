@@ -11,17 +11,20 @@
 - [ ] **P03-T01:** Implement the supported app-managed invocation adapter
   through the approved composition root. Pass immutable task contract,
   attempt/run identity, context, specialist and requested model. Capture real
-  session identity, terminal outcome, cancellation and usage availability.
+  run/worker identity, terminal outcome, cancellation and usage availability.
+  Workflow-owned subagents are eligible; separate app project sessions are not
+  required, but session-scope and other parity requirements remain.
 - [ ] **P03-T02:** Preserve task DAG, owner-unique scheduling, manual selections
-  and strict phase validation semantics using shared code. Preserve task/phase
-  session scopes and reject unsupported scope/concurrency combinations.
+  and strict phase validation semantics using shared code. Preserve task session
+  scope; reject phase scope (D-12) and unsupported concurrency visibly.
 - [ ] **P03-T03:** Keep verification outside model assertions: expected outputs,
   actual changed files, no-op, valid `forge-result`, empty blockers and declared
   command exit codes. Record skipped gates truthfully and persist failed
   attempts before retry.
-- [ ] **P03-T04:** Preserve isolated task changes and serialized integration/
-  per-task commits, using the isolation owner approved in P02. Test conflict and
-  dirty-tree behavior; do not run duplicate app and engine worktree managers.
+- [ ] **P03-T04:** Preserve task change attribution and serialized
+  integration/per-task commits for sequential execution (D-11). Test dirty-tree
+  behavior and partial changes left by cancelled attempts; reject concurrency
+  above 1 visibly. Do not run duplicate app and engine worktree managers.
 - [ ] **P03-T05:** Retain retryable/terminal error classification, timeouts,
   cancellation and optional automated phase review ordering. Require rerun of
   affected task and full phase checks after review-driven fixes.
@@ -36,7 +39,7 @@ first-class in the copied standalone edition, not a fallback for app dispatch.
 ## Specific future sub-agent opportunities
 
 After shared interfaces freeze, a transport specialist owns the new adapter and
-native-session tests; a verification specialist owns output/result-gate tests;
+app-managed execution tests; a verification specialist owns output/result-gate tests;
 a sandbox specialist owns isolated integration fixtures. Agree disjoint files
 before work; only the coordinator changes scheduling composition and shared
 types. A reviewer checks evidence and failure cases after integration, not by
@@ -45,7 +48,8 @@ rerunning overlapping implementation work.
 ## Validation and exit gate G03
 
 Run V01, V04-V06, V09, V12 and V15 through shared contract tests and actual
-app sessions. Start with bounded tasks, then independent concurrent tasks.
+app sessions. Start with bounded tasks, then sequential multi-task runs;
+concurrent execution is deferred (D-11) and must be rejected.
 Negative cases must fail without dependent dispatch, hidden fallback or false
 completion. App permissions/model routes are observed, not inferred.
 
