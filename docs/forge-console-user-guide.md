@@ -1,0 +1,645 @@
+# Forge Console user guide
+
+This walkthrough covers the everyday flow for opening the Forge Console, creating or switching projects, authoring reviewed requirements, and monitoring a build. It is kept in step with the console UI — see [updates.md](updates.md) for what changed in each release.
+
+> [!WARNING]
+> The committed screenshots were captured from the current Console build
+> against a deterministic local fixture. They document current layout and
+> representative fixture state, but do not replace interactive accessibility
+> testing.
+
+---
+
+## 1. Start the console
+
+From any terminal, run:
+
+```bash
+forge-launcher console
+```
+
+The server binds to `127.0.0.1` and prints a local URL such as `http://127.0.0.1:4300`. If the default port is busy, the next free port is used.
+
+Useful flags:
+
+```bash
+forge-launcher console --repo /path/to/your/project   # open a specific repo immediately
+forge-launcher console --port 4400                    # prefer a specific port
+forge-launcher console --no-open                      # keep the browser handoff manual
+```
+
+### Expose the Console on your tailnet
+
+For Tailscale Serve, keep the Console on loopback and supply the HTTPS origin
+that Serve exposes. First configure Serve for the chosen port and note its URL
+with `tailscale serve status`, then start the Console with that origin:
+
+```bash
+tailscale serve --bg 4300
+forge-launcher console --port 4300 \
+  --external-origin https://my-host.example.ts.net --no-open
+```
+
+Replace the example URL with your machine's Tailscale Serve origin. The
+`--external-origin` value must be HTTPS and must not include a path. Apply
+tailnet ACLs to restrict who can reach the Console. The Console token is not
+user authentication; do not expose this service through Tailscale Funnel or a
+public proxy.
+
+---
+
+## 2. Create or open a project
+
+The Home page emphasizes one primary action:
+
+- Choose **Start with an idea** to create a new Project from the Console.
+- Use **Recent Projects** or **Open a Project** to return to a repo already on
+  disk.
+- Choose **Set up an app** to bootstrap Forge into an existing application
+  repository.
+
+The project picker remembers recent repos in your local Forge registry, so you can return to them later without re-adding the folder.
+
+The New Project path starts with only an **Idea**, a suggested (editable)
+Project name, and an **AI coding tool**. The configured default tool is selected
+when one exists; otherwise choose a tool explicitly. Project visibility,
+description, parent directory, concurrency, existing PRD/research documents,
+and authoring runner/model preferences are available under **Advanced setup**.
+You can leave those details unknown and use the defaults.
+
+Existing PRD and research/seed files are optional source material for
+authoring—not a substitute for the guided sessions. Browse a file picker or
+type absolute paths (comma-separated for multiple research files). Uploaded
+files must be plain text or Markdown (`.md` or `.txt`). PRD source material is
+copied to `docs/requirements-source.md`; research/seed files go to
+`docs/research/`. Both the Idea and Project brief still go through interactive
+authoring.
+
+After creation, choose **Open your Project guide** when setup is ready. The guide
+shows two distinct phases: **Explore your Idea** and **Author your Project
+brief**. Each opens the supported interactive session in the Console Terminal;
+the session continues while you move between Console views, and the guide
+returns to the same Project and saved phase, reconciled with the current
+Project files. If the brief is already complete, the guide advances to its
+editable review page instead of repeating Idea exploration or brief authoring.
+The review includes an at-a-glance summary of the outcome, assumptions, and
+open questions.
+
+---
+
+## 3. Drive the pipeline from Build status
+
+Build status (`#/overview`) is the main control center for a Project. It shows:
+
+- the run header (Live/Idle indicator, harness badge, and control state),
+- progress counters,
+- blockers or failures,
+- the **Manifest** panel (compiled phase/task counts),
+- the latest detached-job status,
+- the pipeline status,
+- and the run controls.
+
+For a new Project, Build status shows the saved guided authoring, review, and
+preparation phase rather than a technical pipeline action. Existing Projects
+continue to use their pipeline actions, and the Console shows generated
+artifacts before later work moves forward.
+
+For a new Project, follow the **Explore your Idea** and **Author your Project
+brief** phases on the Project guide in order. Both are interactive; neither is
+silently skipped when source documents are supplied. Existing Projects without
+a guided setup use the **interactive** authoring action on Build status. There is
+no headless requirements-authoring alternative. Use the **Terminal** view to
+run a session in the browser, or choose **Open in external terminal** there.
+
+The **Terminal** view supports the selected project tool, Idea/Project-brief/
+feature authoring sessions, keyboard input, and terminal resizing. It runs only a
+supported harness CLI—there is no general-purpose shell. One session can run at
+a time. The session keeps running in the background when you navigate to another
+view (the Terminal nav link shows a dot); it ends when you press **Stop**, change
+projects, reload the page, or stop the Console. Use the external-terminal button
+if an in-browser session is unavailable or you prefer a separate window.
+
+New Project authoring:
+
+1. **Explore your Idea**: the Project guide opens `forge-grill-idea` for an interactive exploration.
+2. **Author your Project brief**: the guide opens `forge-build-prd` for interactive authoring; assumptions and open questions remain visible in the resulting brief.
+3. **Review the Project brief**: edit the brief in Build status and use the at-a-glance summary to check its outcome, scope, success criteria, assumptions, and open questions.
+4. Choose **Request changes** to save the edits and return to interactive brief authoring, or choose **Approve** as a separate decision.
+5. Approval authorizes preparation only. The Console prepares the team, project guidance, and Build plan as one guided background step; it does not start execution. Progress and failures remain visible, with retry and Logs actions.
+6. When preparation is complete, review the major phases, assumptions, and warnings in the prepared plan. Choose **Start build** explicitly to begin execution. Project brief approval is separate from approving a runtime Human review Task.
+
+If a warning says a file is owned by multiple agents, the same path is listed as
+an expected output by Tasks assigned to different agents. Open **Project files**
+and read `docs/agent-responsibility-matrix.md` to identify them. Edit the source
+`forge-task` definitions in `docs/features/*.md` so the file has one owning
+Task/agent, or split distinct outputs between Tasks, then return to Build status
+and choose **Re-derive team & skills**. Do not edit the generated matrix or
+manifest.
+
+The existing pipeline actions remain available for Projects outside the guided
+authoring path. A Build is a separate action from authoring, review, and
+preparation.
+
+The console polls for state changes and updates the button label as each stage
+completes. When a detached step finishes or fails, Build status keeps the result
+visible and links you straight to **Logs**.
+
+To use MyForge with an application that already exists, open **Projects** and
+choose **Bootstrap an existing repo**. The folder must be a Git repository;
+enable **Initialize git if needed** explicitly for a non-Git folder. Existing
+application files are preserved, and Forge files are overwritten only when
+**Overwrite existing Forge files** is selected. The form also offers an
+**Authoring runner**, which defaults to inheriting the runner from the harness;
+picking one saves it into the repository's `docs/authoring-config.json`.
+
+After a build completes, use **Add a feature** on Build status and choose **Author
+feature PRD (interactive)**. The terminal session interviews you and writes an
+additive document under `docs/features/`, leaving the original PRD intact. Once
+the feature document is saved, choose **Continue after authoring** to update
+affected agents and reconcile the manifest. Before running or resuming, open
+**Review new Tasks** and inspect the generated descriptions and acceptance
+criteria, then confirm **I reviewed these Tasks**. Until confirmed, execution is
+gated. Stable Task IDs preserve completed work, and changed contracts are
+called out for review; this additive review does not change runtime Human
+review or other approval rules.
+
+---
+
+## 4. Navigate the Project and Advanced views
+
+**Home** and **Projects** are global destinations. The **Project** group offers
+Build status, Board, Project brief, Project files, and Human review for the
+selected Project. The visible **Advanced** group contains All tasks, Logs,
+Timeline, Terminal, Plan & Team, Artifacts, and Settings. Hover a group to open
+its list, or select it to pin the list open on touch; Advanced is not a
+separate product mode.
+
+The shell keeps full top navigation above 1050px, changes to a compact left
+navigation rail from 721–1050px, and uses the labeled **Menu** drawer at 720px
+or below. In the drawer, open **Project** or **Advanced** to reach its
+destinations. It opens below the context bar, keeping the Project identity,
+switcher, harness, and Live/Idle status visible.
+
+The Project context bar and switcher remain available on every destination.
+Following a link or bookmark never changes the selected Project; switching is
+explicit. The switcher uses the same lifecycle destination as **Open** in
+Projects: completed Projects open **Project files**, while other states open
+Build status at the next meaningful action. Existing routes—including `#/overview`, `#/tasks?task=…`, and
+`#/documents?stage=…`—keep their destination and applicable query state.
+`#/project-brief` opens the readable brief directly; use Build status for its
+editable review and approval actions. If a saved destination has been retired
+or a Project destination is unavailable, the Console explains the fallback and
+routes to Build status or Projects as appropriate.
+Resizing between layouts preserves both the active destination and selected
+Project.
+
+Choose **Project files** from **Project** to read the Project idea, Project
+brief, build progress, and feature documents in the Console. Delivered files
+are listed separately with an explicit **Open externally** action. This view
+does not edit or remove repository content; Task-by-Task artifact history
+remains in **Advanced → Artifacts**.
+
+Once the build starts, switch between the views to follow the work:
+
+- **Board**: the live build, in **Kanban** or **Gantt** mode.
+  - **Kanban** groups Tasks by phase and workflow status.
+  - **Gantt** plots the same run against time. Filled bars are measured, outlined
+    hatched bars are forecast; Human reviews appear as milestone diamonds, and
+    the engine-computed critical path and current-time marker are shown.
+  - Task cards show only status and title. Both views share selection, status
+    filters, and the same details panel; selecting a card or bar reveals the
+    summary, attention cue, next responsible person, next action, blocker,
+    prerequisites, artifact inputs and outputs, and changed files. These
+    relationships are structured text, not pointer-only links or extra focus
+    stops; open **All tasks** for full diagnostics.
+  - Status badges, card edges, and Gantt bars show the workflow state and
+    attention at a glance: pending is muted, running and Human review are blue,
+    complete is green, failed is red, and blocked or skipped is amber. A subtle
+    pulse marks an observed status or attention change, including work moving
+    out of the attention list; routine refreshes do not animate Tasks, and
+    reduced-motion preferences disable the pulse.
+  - Status filters dim rather than hide Tasks, keeping the full workflow shape
+    visible. Selection and filters persist per Project, and each view retains
+    its own scroll position across refreshes, view switches, and responsive
+    resizing. On narrow screens, Kanban keeps phase labels visible while status
+    columns scroll horizontally; Gantt keeps Task labels in view while its
+    timeline pans.
+  - Task details open beside the Board on wide screens, below it on medium
+    screens, and full-screen on narrow screens. Closing details returns focus
+    to the originating Task.
+  - The Board is semantic HTML/CSS and works without PixiJS. Every Task card
+    and Gantt bar is a keyboard-focusable control; Enter or Space opens its
+    details, and closing details returns focus to the originating control.
+    Filters and view changes retain logical focus and the selected Task while
+    it remains available.
+  - The Board announces failures, newly ready Human reviews, and cleared
+    blockers, but not routine progress. Loading, empty, failed, and stale data
+    states offer a next step.
+- **Human review**: a focused queue containing only Human review Tasks. Each entry
+  shows why it is ready or waiting, its Task-specific criteria and references,
+  the blocker, and who acts next. A Human review is separate from Project
+  brief approval and requires a person's findings and explicit Task-bound
+  approval; agent or unattended flags cannot approve it.
+- **All tasks (Advanced)**: the sortable, filterable technical Task table with a detail
+  drawer. The **Tokens** column and drawer show harness-reported token and
+  cost usage (or an explicit "not reported"); Build status run stats show the
+  run totals.
+- **Logs (Advanced)**: the engine and authoring log tail plus the live audit event stream.
+- **Plan & Team (Advanced)**: the technical project documents as a table (kind, title, path, status)
+  and the generated agent/skill files. Selecting a document opens it in a wide
+  popup with an **Open externally** button; `forge-requirement` and `forge-task`
+  blocks render as tables instead of code. Skills are shown as cards grouped
+  into **Forge skills** and **Project skills**; the authoring stage cards and
+  re-derivation footer live here too.
+- **Artifacts (Advanced)**: the detailed outputs and provenance for each Task.
+- **Settings (Advanced)**: Appearance (System/Light/Dark theme), authoring models, execution preferences (build mode, concurrency, auto-commit, harness logging, task timeouts), and per-agent model overrides in one place.
+
+The Console uses the selected harness root for team, report, and model-override
+operations. It does not merge agents with the same identity from other harness
+roots, so a skills-only directory cannot silently replace the generated team.
+For an existing compiled manifest, the manifest's `harnessRoot` is preferred
+over automatic detection. If that path is stale, update the selected root and
+recompile the manifest explicitly; the Console will not silently switch roots.
+- **Timeline (Advanced)**: a chronological record of important events and failures.
+- **Terminal (Advanced)**: an interactive browser session for the selected
+  harness CLI or an existing authoring target.
+
+The most useful combination for day-to-day work is usually Build status + Board + Logs.
+
+Authoring lifecycle records use the `FORGE_EVENT {json}` prefix in
+`docs/engine-run.log` and are also sent as `authoring` SSE events. Ordinary
+process output remains unchanged and continues as `log` events, preserving
+plain log tails and compatibility with older clients. Failed stages leave both
+the lifecycle failure record and the command output in the same log.
+
+---
+
+## 5. Prepare and control a build
+
+The **Controls** panel on Build status offers the same actions you would otherwise issue from the CLI:
+
+- **Pause**: stop after the current task completes.
+- **Stop**: confirm before terminating the running engine. Canceling leaves the
+  run untouched and sends no stop request.
+- **Resume**: continue the run from the saved state.
+- **Replay**: retry a failed task.
+- **Manual build**: before a manifest exists, prevent the team → build step from
+  starting the full workflow. The pipeline action becomes **Create manifest**.
+- **Build mode**: after the manifest exists, choose **auto** to run the full
+  workflow, or **manual** to run only the saved task selection from the Tasks
+  view. Manual mode requires at least one selected task.
+- **Reset changed tasks for review**: after feature reconciliation, resets completed or skipped tasks whose contracts changed back to pending. Review the changed task IDs before using this action.
+- **Launch \<harness\> CLI**: opens the project's harness CLI (opencode/copilot/claude) in a new terminal from the project folder, so you can watch the live run and take over manually. Also available on the **All tasks** header. The **Terminal** view provides an in-browser session as well.
+
+Execution preferences — **auto-commit after each task**, **log harness
+activity**, **concurrency**, and **task timeouts** — are set in the
+**Settings** view rather than the Build status Controls panel. They are stored in
+`docs/engine-config.json` (and the manifest for timeouts) and applied to
+subsequently started runs. For concurrency above `1`, the working tree must be
+clean (see [ADR-056](adr/056-parallel-execution-task-sandboxes.md),
+[ADR-058](adr/058-opencode-v2-project-resolution.md), and
+[ADR-059](adr/059-pwd-aligned-spawn-environment.md)).
+
+### Human review: when it pauses and how to prove approval
+
+For the complete reviewer procedure and a reusable notes template, see the
+[Human Review Guide](human-review-guide.md).
+
+Human review is a deliberate workflow gate, not a model task. A task causes a
+human review when its manifest contract has `kind: "human-review"`. These tasks
+are normally generated for work that requires human judgment—such as usability,
+accessibility, rubric scoring, native-language, compliance, or other sign-off
+that an agent must not claim. They depend on the implementation or preparation
+tasks they review, have explicit requirements and acceptance criteria, and name
+an approval record in `contract.reviewFile`. The engine pauses before dispatching
+such a task; `--yes` cannot approve it.
+
+#### Approve from the Console
+
+1. Open the focused **Tasks** queue and find the review. It reads **Ready for
+   human review** only once its prerequisites are complete; otherwise it shows
+   the blocker and who is responsible for clearing it, with no approval action.
+   The Task remains visible after approval with its evidence location. The
+   technical **All tasks** table remains available for full diagnostics.
+2. Read its ordered, task-specific procedure in the description, plus its
+   requirements, acceptance criteria, constraints, and references. The task
+   author should supply the steps and pass/fail checks; reviewers should not have
+   to invent what to exercise. See the [Human Review Guide](human-review-guide.md)
+   for the common review/evidence process.
+3. Click **Complete human review**.
+4. Read **Unverified upstream checks**, which includes transitive task and
+   prerequisite-phase dependencies. Exercise the primary user journey against
+   the running system for user-facing features and perform the applicable live
+   integration checks. Enter your name, record what you exercised and found
+   (at least 40 characters after trimming), and select **I performed this review
+   and approve this task.**
+5. Submit the form. The Console writes a readable record at
+   `docs/reviews/<task-id>-console-review.md`, writes the task's configured
+   `reviewFile` attestation with the task fingerprint and evidence hash, and
+   resumes the build when the task is ready.
+
+Approving from the Console is safe with parallel execution: the review record and
+attestation it writes are tolerated generated state, so the run it resumes is not
+refused by the clean-tree preflight that sandboxes require.
+
+The completed task changes to **Human review complete**. To prove the approval,
+show both the Markdown review record and the configured JSON approval record.
+The engine verifies the task ID, current task/reference fingerprint, reviewer,
+timestamp, decision, and hashes of every evidence file. Editing the task,
+selected reference content, or evidence after approval makes the attestation
+stale and the task pauses again.
+
+Validation gaps are historical reports of non-required checks not run, not
+automatic blockers or proof that review resolved them. Approval does not remove
+them from the originating task or progress document. Older state files without
+reported gaps remain readable; an empty list does not establish full coverage.
+The minimum note length applies to the Console evidence-writing path, not to
+existing evidence files submitted through the CLI.
+
+#### Approve from the CLI
+
+Create or identify a repository-relative evidence file containing the review
+notes, then run the installed workflow engine command:
+
+```bash
+cd .agents/skills/forge-workflow-engine
+npm run workflow-engine -- approve-task <task-id> \
+  --repo /path/to/project \
+  --reviewer "Your Name" \
+  --evidence docs/reviews/my-review.md \
+  --confirm-human-review
+```
+
+The command refuses while any prerequisite of the task is pending or failed, and
+names them, so an approval cannot be recorded against work that does not exist
+yet. The attestation is fingerprinted over the task and its references, so it
+self-invalidates when those change - but not when the reviewed output changes,
+which is what this check exists to prevent.
+
+The command writes the configured `reviewFile` attestation and prints a
+confirmation. Resume the detached build with:
+
+```bash
+forge-launcher engine-run --repo /path/to/project --yes
+```
+
+To prove the CLI approval, show the evidence file, the configured JSON
+`reviewFile`, and the engine status/log confirming that the review task was
+verified and completed. Evidence paths must stay inside the repository and
+contain non-empty review material; agents must never run `approve-task` or
+fabricate an attestation.
+
+### Authoring stages and model settings
+
+Authoring has three separate stages:
+
+1. **PRD** - capture or review the product requirements.
+2. **Team** - generate agents, ownership, and execution responsibilities.
+3. **Project skills** - generate or review project-specific skills before the
+   execution adapter compiles the manifest.
+
+Each stage has its own output and review boundary. A missing or failed skills
+stage is not equivalent to a successful "no skills required" result. A handoff
+of `reuse` candidates also is not: those skills are required but resolved outside
+the repository, so the stage completes normally with no authored outputs and
+projects as `complete` rather than `not required`.
+The backend persists stage status, input fingerprints, outputs, timestamps,
+errors, and model provenance in versioned `docs/authoring-state.json`; the
+Console should project those states rather than infer readiness from whether a
+skill directory happens to exist.
+
+An **Authoring runner** select sits above the stage model selects in both the
+New Project wizard and the **Settings → Authoring** section. It offers
+**Inherit from harness**, **OpenCode**, **Copilot**, and **Claude Code**.
+Inherit means Copilot for a GitHub repository and OpenCode for every other
+harness, including a Claude one. The stage model dropdowns follow the selected
+runner: changing it reloads that runner's saved inventory without probing, and
+**Refresh** probes the effective runner. **Save** persists the choice as
+`runner` in `docs/authoring-config.json`, and the wizard passes it to the
+launcher that creates the project, so the new repository starts with it saved.
+
+### System-level defaults
+
+Authoring and execution defaults can be set once for all projects in a
+`settings.json` file in the Forge registry directory (`FORGE_HOME`, or
+`~/.myforge` by default), and are served by the Console's `/api/settings`
+endpoint. The effective authoring ladder becomes:
+
+```text
+explicit override → environment → saved project recommendation → system
+default → runner default
+```
+
+A `system` provenance value records when a global default supplied the model or
+runner. Execution defaults (concurrency, auto-commit, harness-activity logging)
+and a default harness are inherited by any project that has not set its own
+value in `docs/engine-config.json`; the project value always wins. A corrupt
+`settings.json` falls back to the defaults and is never overwritten by a read.
+Edit these defaults from the Console in **Settings → Global defaults** (default
+harness, default authoring runner, and default concurrency / auto-commit /
+harness-activity logging); the project-level sections below that override them
+per repository.
+
+**Settings → Appearance** chooses the Console's **System**, **Light**, or
+**Dark** theme. System follows the operating system and updates if it switches;
+the choice is a per-user preference stored as `ui.theme` in the same
+`settings.json`, so it applies to every project and persists across reloads.
+The Console caches the choice locally so the saved palette paints immediately,
+then reconciles with the saved settings on startup.
+
+A **background-job badge** in the context bar shows running and failed
+background jobs across all registered projects and links to the Projects view.
+
+### Assign models to agents
+
+Run the `forge-assign-models` skill after the team has been generated. It builds
+`docs/research/model-inventory.json` from the models available to the local
+environment:
+
+- `opencode models` for OpenCode models,
+- `copilot --help` metadata for Copilot models when the installed CLI exposes
+  an authoritative model section,
+- `claude -p "/model" --bare --output-format json` for Claude Code models,
+- the local Ollama API when Ollama is running, and
+- the configured BYOK provider when `COPILOT_PROVIDER_BASE_URL` is set.
+
+The skill normalizes command output before using it. Headings, bullets,
+numbering, provider labels, table borders, and annotations such as
+`(recommended)` are removed. Only canonical model IDs are assigned; raw CLI
+output is retained only for diagnostics. BenchLM capability and evidence data
+may be attached to discovered models, but BenchLM does not make a model
+available by itself.
+
+Open **Settings → Models** to choose a primary and fallback model for an
+agent. The selectors only accept models present in the discovered inventory.
+Saving an override writes `docs/model-overrides.json`; it does not rewrite the
+agent file. The override applies to every task owned by that agent and takes
+precedence over the recommendation. Apply mode in `forge-assign-models` can
+explicitly copy the values into agent frontmatter when that is desired.
+
+The effective selection order is:
+
+```text
+explicit agent override → saved recommendation → runner default (only when
+the runner supplies one)
+```
+
+The **Model planning terminal** control in the Settings → Models section opens
+a new interactive session in the repository. Choose OpenCode, Copilot, or Claude
+Code, enter a message, and launch it in an external terminal using one of these commands:
+
+```bash
+opencode mini --prompt "<message>"
+copilot -i "<message>" --yolo
+claude "<message>"
+```
+
+OpenCode uses the `mini` subcommand because it is the only interactive surface
+that accepts both a queued prompt and `--model`; the full-screen TUI's
+`opencode --prompt` takes a prompt but rejects `--model`. Because `mini` has no
+auto-approve flag, OpenCode asks you to approve each tool call in the terminal.
+
+Claude Code opens interactively with its default permissions, so its tool use is
+approved in the terminal rather than bypassed.
+
+The assistant is not applied automatically. Review its changes and update the
+model plan or agent overrides explicitly.
+
+For a targeted first Build, enable **Manual build** in the Build status
+pipeline card before clicking **Create manifest**. The manifest is created
+without starting the engine. Use the checkboxes or range picker in **All
+tasks**, then click **Save selection**. When the prepared plan is ready, return
+to **Build status** and choose **Start build**; it honors the saved manual mode
+and selection. **Run selected** and **Resume selected** in **All tasks** become
+available after that first Build has started. Before then, they send no run or
+resume request and direct you to **Build status**. The engine expands selected
+tasks to include unmet dependencies while leaving unselected tasks untouched.
+
+---
+
+## 6. Review incremental changes
+
+After a project has a PRD and agent team, **Add a feature** on Build status opens an
+interactive authoring session for an additive Feature PRD under `docs/features/`.
+It does not replace the original PRD or start the engine. After authoring, choose
+**Continue after authoring** to prepare the affected team and recompile the
+manifest.
+
+The Manifest panel shows preserved, new, changed, and removed task IDs. Stable
+task IDs preserve completed work. Review changed contracts, use **Reset changed
+tasks for review** when those tasks need to run again, and select new pending
+tasks in **All tasks** before a targeted run.
+
+**Reset changed tasks for review** sits in the Manifest panel, next to the
+reconciliation it acts on, and lists each changed task with a link into **All tasks**.
+The reset is behind a confirmation naming every task it will discard, because it
+clears their recorded outputs, artifacts and timings so they run again.
+
+### When the requirements change
+
+Editing a PRD or feature document makes the team and project skills stale. The
+Console tells you which one and why — "*Inputs changed after this stage
+completed: docs/PRD.md*, changed 3h ago" — on Build status and in **Plan & Team**.
+
+**Re-derive team & skills** then runs the whole fix as one background job:
+
+1. regenerate the agent team from the PRD,
+2. regenerate the project skills from the new team,
+3. recompile the execution manifest.
+
+You can watch each step complete, and reloading the page mid-run keeps the
+progress rather than losing it. If a step fails, the chain stops there, names the
+step, and offers **Retry from \<step\>** — which re-runs that step and everything
+after it.
+
+Two things it deliberately will not do:
+
+- **Author requirements.** Requirements authoring is always interactive, so the
+  chain starts at the team. Without a committed PRD and feature documents it
+  points you at the interactive session instead.
+- **Reset your completed tasks.** That stays the separate, confirmed action
+  described above.
+
+The same chain from a terminal:
+
+```bash
+forge-launcher rederive --repo <path>                    # whole tail
+forge-launcher rederive --repo <path> --from skills      # retry from a step
+```
+
+On **Plan & Team**, each authoring stage keeps its action button visible. When a
+stage cannot be run the button is disabled *and says why* — "already up to date
+with its inputs" or "another authoring job is running" — rather than
+disappearing. Unsaved authoring model changes are surfaced in **Settings →
+Authoring** (where the model selectors now live) rather than on these cards.
+
+## 7. Tune task timeouts
+
+The console can edit task timeouts without leaving the UI:
+
+- open a task in the **All tasks** view,
+- change the timeout value (entered in minutes, decimals allowed),
+- and replay the task.
+
+You can also set the same timeout for every task at once from the **All tasks** header or the Settings view (Execution section). These values are stored in the manifest and engine config files so the run can be retried with a larger budget. Completed tasks show their timeout read-only; failed, pending, and running tasks stay editable.
+
+---
+
+## 8. Switch between projects
+
+If you are working across several repos, use the **Projects** view or the project switcher in the top context bar to switch contexts. This keeps the current workspace and run state separate while preserving your recent-project history.
+
+The Projects list shows **project name**, **state**, and **last accessed**
+date/time, not filesystem paths. Click **Open** in the desired row.
+
+Opening a Project takes you to the action for its current state: interactive
+authoring for a new or partially authored Project, brief review when approval
+is needed, guided preparation or the prepared plan while setup advances, and
+Build status for a running, blocked, or failed Build. A completed Project opens
+**Project files**. Existing repositories join this same lifecycle according to
+their files and run history.
+
+Build status explains the precise action stopping progress. If a blocker does
+not prevent other work, the Project remains **Running** and shows the blocker
+alongside its active state. A failure names its stage and offers stage-specific
+recovery; completed Tasks and execution history remain intact. Missing folders
+remain in **Projects** with **Reconnect** and recovery guidance. Reconnect
+retries the saved location; if the folder moved, add its current folder rather
+than removing the old registration.
+
+### Remove one or more projects from Forge
+
+1. Use **Remove from Forge** in a project row, or check individual projects
+   (or use the header checkbox to select all) and click **Remove selected (N)**.
+2. Review the selected rows and confirmation. **No files inside project folders
+   will be changed or deleted.** Cancel to leave everything as it is.
+3. Confirm, then review each project's result: **removed**, **blocked**, or
+   **failed**. Active jobs block removal; the Console does not stop them for you.
+   Wait for those jobs to finish and retry. Failure details remain visible.
+
+This removes the Forge registration, associated Console job history, and
+verified external Forge job-result files only. Source, Git history, docs,
+configuration, agents, skills, logs, and Forge-generated repository files stay
+intact. Shared settings and other projects are not removed. Unverified or shared
+result files are left untouched.
+
+Stale entries can be removed even when their folders no longer exist. If you
+remove the current project, the Console clears its selection. To bring back a
+removed project, use **Add folder** with its existing folder; you do not need to
+bootstrap it again.
+
+---
+
+## 9. Troubleshoot common issues
+
+- If the page does not open, check the terminal output for the local URL and try opening it manually.
+- If a build does not advance, confirm the current stage in Build status and look for blockers in the Logs view.
+- If a task keeps failing, bump its timeout and replay it.
+- If **Run selected** is disabled, switch to **All tasks**, select one or more
+  tasks, and click **Save selection**.
+- If a feature increment reports changed tasks, review the reconciliation in
+  Manifest before running; reset changed tasks only when they should execute
+  again.
+- If you want to inspect the underlying documents, open the Plan & Team view or read the files in the repo directly.
+
+For more detail on the console’s architecture and capabilities, see [forge-console.md](forge-console.md).

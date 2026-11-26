@@ -1,0 +1,126 @@
+# forge-launcher
+
+One command from zero to auto-build. `forge-launcher` is the cross-platform
+Node.js entry point for [MyForge](https://github.com/McFuzzySquirrel/mcfuzzy-agent-forge) -
+it creates a repo, bootstraps the agent/skill templates, captures your idea, and
+drives the pipeline from PRD → agent team → autonomous build.
+
+> Requires **Node.js 18+**.
+
+## Install
+
+```bash
+npm install -g forge-launcher
+# or, without a global install:
+npx forge-launcher
+```
+
+With npm 11, if the global install reports unapproved install scripts, rerun it
+with explicit approval for the two required packages:
+
+```bash
+npm install -g --allow-scripts=node-pty,esbuild forge-launcher
+```
+
+For a one-shot `npx` run on npm 11, pass the same approval:
+
+```bash
+npx --allow-scripts=node-pty,esbuild forge-launcher
+```
+
+These commands approve only `node-pty` and `esbuild` for that invocation. The
+package's `allowScripts` field does not set npm's global approval policy. To
+remember the approval for future global installs, run
+`npm config set allow-scripts=node-pty,esbuild --location=user` once; this
+user-level setting applies to future global installs.
+
+## Quick start
+
+```bash
+forge-launcher            # interactive: create a repo, bootstrap templates, capture your idea
+```
+
+Answer the prompts, then open the generated repo in your agent harness and run
+the queued command it prints.
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `forge-launcher` | Interactive onboarding: repo → bootstrap → idea → queue the next stage. |
+| `forge-launcher --draft` | Same, but auto-draft the agent team and project skills (keeps review boundaries). The PRD is always interactive. |
+| `forge-launcher --headless` | Drive the queued skill from the terminal via `opencode run --auto` / `copilot -p --yolo`. Stops with a handoff when no PRD exists. |
+| `forge-launcher bootstrap <dir> [--harness agents\|github\|claude\|opencode]` | Copy agent/skill templates into an existing project. |
+| `forge-launcher engine-run [--repo <path>] [--harness <h>] …` | Compile the manifest and run the workflow engine (autonomous build). |
+| `forge-launcher resume [--repo <path>]` | Pick up a paused/finished setup where it left off. |
+| `forge-launcher console [--repo <path>] [--external-origin <https-origin>]` | Loopback web UI (`http://127.0.0.1:4300`) for authoring, build monitoring, and run controls; external origin supports a trusted HTTPS proxy. |
+| `forge-launcher draft-team \| draft-skills [--repo <path>]` | Headless derivation stages (PRD → agent team → project skills). |
+| `forge-launcher draft-prd \| draft-existing-prd [--repo <path>]` | Report the interactive requirements handoff. The PRD is never authored headlessly — see [ADR-060](../../docs/adr/060-interactive-requirements-authoring.md). |
+| `forge-launcher compile-manifest [--repo <path>]` | Headless build-prep stage: install the adapter if needed and write `docs/EXECUTION-MANIFEST.json` without starting the engine. |
+| `forge-launcher retire [--repo <path>] [--apply]` | Retire Forge requirements, engine state, and skills; keep the generated agents as a repository-derived support team. |
+
+In the Console's **Projects** view, use **Remove from Forge** for one project or
+**Remove selected (N)** for several. Confirmation is required. Only Forge
+registration, Console job history, and verified external job-result files are
+removed; no files inside project folders are changed or deleted. Active jobs
+block removal. Existing folders can be added again without bootstrapping.
+
+### Autonomous build
+
+```bash
+forge-launcher engine-run --harness opencode --yes                 # per-task: opencode run
+forge-launcher engine-run --harness copilot --yes                  # per-task: copilot -p --yolo
+forge-launcher engine-run --harness opencode --concurrency 3 --yes # parallel dispatch
+forge-launcher engine-run --harness opencode --task-timeout-ms 900000 --yes  # 15-min task budget
+forge-launcher engine-run --harness opencode --session-scope phase --yes      # one conversation per phase
+forge-launcher engine-run --harness opencode --viz --yes           # live Forge Board dashboard
+forge-launcher engine-run --harness opencode --log-harness-activity # stream harness output to the engine log
+forge-launcher engine-run --stop    # stop a detached run after the current task
+forge-launcher engine-run --pause   # pause a detached run after the current task
+```
+
+Run `forge-launcher engine-run --help` for every option (granularity,
+concurrency, timeout, retries, heartbeat, viz).
+
+OpenCode v2 is required. The former `--keep-alive`, `--keep-alive-port`,
+`--no-keep-alive`, and `--attach` flags are retired (see
+[ADR-058](../../docs/adr/058-opencode-v2-project-resolution.md)); each
+`opencode run` connects to OpenCode's own warm background service, so there is no
+server to manage. Set `OPENCODE_EXTRA_FLAGS=--standalone` for a private
+per-run server.
+
+### Retire a completed project
+
+```bash
+forge-launcher retire --repo <path>                 # read-only inventory
+forge-launcher retire --repo <path> --apply         # delete and verify
+forge-launcher retire --repo <path> --apply --archive
+```
+
+Retirement removes the PRD, feature documents, authoring and execution state,
+engine files, Forge skills, and the Forge template agents. It keeps source,
+tests, CI, project documentation, project skills, and the generated specialists,
+then rewrites the specialists against the repository's actual source areas. The
+build orchestrator becomes a support lead and `docs/SUPPORT.md` records the
+ownership map, triage flow, and release checklist. The engine must be stopped and
+the worktree clean; `--keep` preserves a path, `--archive` keeps a copy under
+`.forge-archive/`, and `--commit` is opt-in.
+
+## Harnesses
+
+MyForge works with any harness that reads agents and skills from a repo:
+GitHub Copilot (`.github/agents/`), Claude Code (`.claude/agents/`), opencode
+(`.opencode/agents/`), or a generic `.agents/` directory. The build itself runs
+through a harness adapter - `opencode`, `copilot`, `claude`, `openai`, or `stub` (dry-run
+without spending tokens).
+
+## Docs
+
+- [Full project README](https://github.com/McFuzzySquirrel/mcfuzzy-agent-forge#readme)
+- [Launcher reference](https://github.com/McFuzzySquirrel/mcfuzzy-agent-forge/blob/main/docs/forge-launcher.md)
+- [Forge Console](https://github.com/McFuzzySquirrel/mcfuzzy-agent-forge/blob/main/docs/forge-console.md)
+- [Workflow engine](https://github.com/McFuzzySquirrel/mcfuzzy-agent-forge/blob/main/docs/workflow-engine.md)
+
+## License
+
+[MIT](https://github.com/McFuzzySquirrel/mcfuzzy-agent-forge/blob/main/LICENSE)

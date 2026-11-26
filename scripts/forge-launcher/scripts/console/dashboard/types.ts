@@ -1,0 +1,627 @@
+// ─── Forge Console JSON contract (client copy) ───────────────────────────────
+//
+// Mirror of scripts/console/types.ts. Keep the two in sync.
+
+import type { AuthoringRunnerName } from "./harness-rules.js";
+
+export interface AuditEvent {
+  timestamp: string;
+  action: string;
+  runId?: string;
+  taskId?: string;
+  phaseId?: string;
+  note?: string;
+  durationMs?: number;
+  artifactId?: string;
+  reductionPercent?: number;
+  outputFiles?: string[];
+  usage?: TaskUsage;
+}
+
+/**
+ * Token/cost usage a harness reported for one invocation. Mirrors the engine's
+ * `TaskUsage`; `source: "unavailable"` means the harness reported none (never
+ * zero counts, which would misrepresent usage as free).
+ */
+export interface TaskUsage {
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  reasoningTokens?: number;
+  costUsd?: number;
+  credits?: number;
+  source: "harness" | "unavailable";
+  note?: string;
+}
+
+/** Run-level usage, summed from each task's cumulative usage. */
+export interface UsageTotals {
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  reasoningTokens: number;
+  costUsd: number;
+  credits: number;
+  tasksWithUsage: number;
+  tasksTotal: number;
+}
+
+export interface TaskRecord {
+  taskId: string;
+  status: string;
+  ownerAgent?: string;
+  startedAt?: string;
+  completedAt?: string;
+  attempt: number;
+  outputFiles: string[];
+  agentOutput?: string;
+  errorMessage?: string;
+  artifactId?: string;
+  inputArtifactIds?: string[];
+  validationLimitations?: string[];
+  usage?: TaskUsage;
+}
+
+export interface WorkflowState {
+  runId: string;
+  startedAt: string;
+  lastUpdatedAt: string;
+  manifestPath: string;
+  manifestVersion: string;
+  harness: string;
+  status: string;
+  currentPhase?: string;
+  tasks: Record<string, TaskRecord>;
+  phases?: Record<string, { phaseId: string; status: string; errorMessage?: string }>;
+  blockers: string[];
+  selection?: { mode: ExecutionMode; scope?: SelectionScope; taskIds: string[] };
+}
+
+export interface ExecutionManifest {
+  version: string;
+  generatedAt: string;
+  granularity?: string;
+  sourceLayout?: string;
+  repoRoot: string;
+  harnessRoot: string;
+  prdPath: string;
+  progressPath: string;
+  auditPath: string;
+  validationCommands: string[];
+  approvalGates: { preflight: boolean; betweenPhases: boolean };
+  phases: Array<{
+    id: string;
+    title: string;
+    description: string;
+    feature?: string;
+    ownerAgents: string[];
+    dependencies: string[];
+    approvalRequired: boolean;
+    completionPolicy?: "task-only" | "strict";
+    requiredOutputs?: string[];
+    validationCommands?: string[];
+    tasks: Array<{
+      id: string;
+      title: string;
+      description: string;
+      ownerAgent?: string;
+      dependencies: string[];
+      required?: boolean;
+      expectedOutputs: string[];
+      validationCommands: string[];
+      approvalRequired: boolean;
+      inputs?: string[];
+      produces?: string;
+      timeoutMs?: number;
+      contract?: {
+        version: 1;
+        kind: "implementation" | "human-review";
+        requirements: string[];
+        acceptanceCriteria: string[];
+        constraints: string[];
+        references: string[];
+        reviewFile?: string;
+      };
+    }>;
+  }>;
+  warnings: string[];
+  reconciliation?: { previousGeneratedAt?: string; preservedTaskIds: string[]; newTaskIds: string[]; removedTaskIds: string[]; changedTaskIds: string[] };
+}
+
+export interface RunCounts {
+  pending: number;
+  running: number;
+  complete: number;
+  failed: number;
+  skipped: number;
+}
+
+export interface RunSummary {
+  runId: string;
+  status: string;
+  startedAt: string | null;
+  lastUpdatedAt: string | null;
+  completedDurationMs: number;
+  currentPhase: string | null;
+  currentPhaseTitle: string | null;
+  counts: RunCounts;
+  total: number;
+  blockers: string[];
+  /** Run-level token/cost usage, summed from completed/failed task records. */
+  usage: UsageTotals;
+}
+
+export interface ManifestSummary {
+  version: string;
+  generatedAt: string;
+  granularity?: string;
+  phases: number;
+  tasks: number;
+  reconciliation?: {
+    previousGeneratedAt?: string;
+    preservedTaskIds: string[];
+    newTaskIds: string[];
+    removedTaskIds: string[];
+    changedTaskIds: string[];
+  };
+}
+
+export interface Summary {
+  repoRoot: string;
+  repoName: string;
+  harness: string | null;
+  hasIdea: boolean;
+  hasPrd: boolean;
+  hasVision: boolean;
+  hasFeatures: boolean;
+  hasTeam: boolean;
+  hasManifest: boolean;
+  manifest: ManifestSummary | null;
+  run: RunSummary | null;
+  live: boolean;
+  control: string | null;
+  logExists: boolean;
+  defaultTimeoutMs: number | null;
+  /** Auto-commit after each completed task (engine-config; default on). */
+  autoCommit: boolean;
+  /** Stream harness CLI activity into docs/engine-run.log (engine-config; default off). */
+  logHarnessActivity: boolean;
+  /** Max agents to run in parallel (engine-config; 0 means engine default). */
+  concurrency: number;
+  executionMode: ExecutionMode;
+  selectionScope: SelectionScope | null;
+  selectedTaskIds: string[];
+  selectedTaskCount: number;
+  job: BackgroundJob | null;
+  authoring?: AuthoringState;
+  authoringReady?: boolean;
+  authoringBlocker?: string;
+  authoringNextStage?: AuthoringStage;
+  /** Per-stage authoring detail, including the cause of any staleness. */
+  authoringStages?: AuthoringStageDetail[];
+  /** Progress of the team → skills → manifest re-derivation chain. */
+  rederive?: RederiveProgress | null;
+}
+
+export type RederiveStepId = "team" | "skills" | "manifest";
+export type RederiveStepStatus = "pending" | "running" | "complete" | "failed";
+
+export interface RederiveStep {
+  id: RederiveStepId;
+  label: string;
+  status: RederiveStepStatus;
+  message?: string;
+  startedAt?: string;
+  finishedAt?: string;
+}
+
+export interface RederiveProgress {
+  runId: string;
+  /** True while any step is running. */
+  active: boolean;
+  /** Running step, else the first unfinished one. Null once the chain is done. */
+  currentStep: RederiveStepId | null;
+  /** The step that failed, which the UI offers to retry from. */
+  failedStep: RederiveStepId | null;
+  complete: boolean;
+  steps: RederiveStep[];
+}
+
+export interface StaleInput {
+  path: string;
+  modifiedAt: string;
+}
+
+/**
+ * One authoring stage with the plain-language reason it is stale, or why it
+ * cannot run. Lets the UI name the changed input file instead of only reporting
+ * that authoring is "not ready".
+ */
+export interface AuthoringStageDetail {
+  stage: AuthoringStage;
+  status: "untracked" | "pending" | "running" | "complete" | "failed";
+  /** True only when a recorded, completed stage no longer matches its inputs. */
+  stale: boolean;
+  reason: string;
+  staleInputs: StaleInput[];
+  outputs: string[];
+  completedAt?: string;
+}
+
+export interface TaskRow {
+  id: string;
+  title: string;
+  description: string;
+  phaseId: string;
+  phaseTitle: string;
+  ownerAgent: string | null;
+  effectiveModel: string | null;
+  effectiveFallbackModel: string | null;
+  status: string;
+  attempt: number;
+  startedAt: string | null;
+  completedAt: string | null;
+  durationMs: number | null;
+  outputFiles: string[];
+  errorMessage: string | null;
+  artifactId: string | null;
+  inputs: string[];
+  produces: string | null;
+  dependencies: string[];
+  expectedOutputs: string[];
+  validationCommands: string[];
+  timeoutMs: number | null;
+  approvalRequired: boolean;
+  /** Cumulative token/cost usage for this task, when the harness reported it. */
+  usage: TaskUsage | null;
+  contractKind?: "implementation" | "human-review";
+  requirements: string[];
+  acceptanceCriteria: string[];
+  constraints: string[];
+  references: string[];
+  reviewFile?: string;
+  /** Checks reported as not run by this task or, for human reviews, by any upstream dependency. */
+  validationGaps: string[];
+  /**
+   * Task dependencies or strict phase gates that are not yet complete. A
+   * human-review task with a non-empty list is not reviewable yet, so the Tasks
+   * view must not offer its approval action.
+   */
+  unmetPrerequisites: string[];
+}
+
+export interface BoardGanttBar {
+  taskId: string;
+  kind: "actual" | "planned";
+  startMs: number;
+  endMs: number;
+  status: string;
+  critical: boolean;
+  milestone: boolean;
+  estimateSource: "actual" | "audit" | "owner" | "default";
+  durationMs: number;
+}
+
+export interface BoardGanttLayout {
+  bars: BoardGanttBar[];
+  criticalPath: string[];
+  axis: {
+    min: number;
+    max: number;
+    ticks: Array<{ at: number; label: string; dayBoundary: boolean }>;
+  };
+  phaseBars: Array<{ phaseId: string; row: number; startMs: number; endMs: number; critical: boolean }>;
+}
+
+export interface BoardLayout {
+  kanban: unknown;
+  gantt: BoardGanttLayout;
+}
+
+export interface ArtifactMeta {
+  artifactId: string;
+  type: string;
+  category: string;
+  taskId: string;
+  producedBy: string;
+  status: string;
+  summary: string;
+  confidence?: number;
+  createdAt: string;
+  filesChanged: string[];
+  inputs: string[];
+}
+
+export interface ArtifactIndex {
+  artifacts: ArtifactMeta[];
+  types: string[];
+}
+
+export interface DocEntry {
+  id: string;
+  kind: string;
+  title: string;
+  relPath: string;
+  exists: boolean;
+}
+
+export interface DocsIndex {
+  entries: DocEntry[];
+}
+
+export interface AgentInfo {
+  name: string;
+  description: string;
+  model?: string;
+  modelFallback?: string;
+  path: string;
+  relPath: string;
+  expertise: string[];
+  collaboration: string[];
+  constraints: string[];
+  modelOverride?: string;
+  modelFallbackOverride?: string;
+}
+
+export interface ModelInventory {
+  models: Array<{ id: string; provider?: string; capabilities?: Record<string, unknown> }>;
+  last_verified?: string;
+}
+
+export type AuthoringStage = "prd" | "team" | "skills";
+
+/** Authoring stages in pipeline order, mirroring the server's AUTHORING_STAGES. */
+export const AUTHORING_STAGES: readonly AuthoringStage[] = ["prd", "team", "skills"];
+
+export interface AuthoringConfig {
+  version: 1;
+  models: Partial<Record<AuthoringStage, string>>;
+  /** Explicit authoring runner; absent means "inherit from the harness". */
+  runner?: AuthoringRunnerName;
+}
+
+export interface AuthoringInventory {
+  runner?: string;
+  models: Array<{ id: string; provider?: string; last_verified?: string; capabilities?: Record<string, unknown> }>;
+  last_verified?: string;
+  diagnostics?: string[];
+}
+
+export type GlobalRunner = "copilot" | "opencode" | "claude";
+
+/** Console palette: `auto` follows the operating system preference. */
+export type ThemePreference = "light" | "dark" | "auto";
+
+/** System-level defaults shared across projects (settings.json in FORGE_HOME). */
+export interface GlobalSettings {
+  version: 1;
+  authoring?: {
+    runner?: GlobalRunner;
+    models?: Partial<Record<AuthoringStage, string>>;
+  };
+  execution?: {
+    concurrency?: number;
+    autoCommit?: boolean;
+    logHarnessActivity?: boolean;
+  };
+  harness?: "opencode" | "github" | "claude" | "agents";
+  ui?: {
+    theme?: ThemePreference;
+    boardMode?: "kanban" | "gantt" | "table";
+  };
+}
+
+export interface AuthoringStageState {
+  status: "pending" | "running" | "complete" | "failed";
+  inputFingerprint: string;
+  outputFingerprint?: string;
+  outputs: string[];
+  noSkillsRequired?: boolean;
+  reusedSkills?: string[];
+  startedAt?: string;
+  completedAt?: string;
+  error?: string;
+  invocation?: {
+    runner: string;
+    requestedModel?: string;
+    effectiveModel?: string;
+    source: "invocation" | "environment" | "project" | "system" | "inherit";
+    inventoryVerifiedAt?: string;
+  };
+}
+
+export interface AuthoringState {
+  version: 1;
+  stages: Partial<Record<AuthoringStage, AuthoringStageState>>;
+}
+
+export interface SkillInfo {
+  name: string;
+  description: string;
+  path: string;
+  relPath: string;
+  /** Whether the skill was bootstrapped from the forge templates ("forge") or generated for the project ("project"). */
+  category: "forge" | "project";
+}
+
+export interface TeamIndex {
+  harnessRoot: string | null;
+  agents: AgentInfo[];
+  skills: SkillInfo[];
+}
+
+export interface Actions {
+  canRun: boolean;
+  canResume: boolean;
+  canPause: boolean;
+  canStop: boolean;
+  failedTasks: string[];
+}
+
+export interface ProjectInfo {
+  path: string;
+  name: string;
+  harness?: string;
+  createdAt?: string;
+  lastOpenedAt?: string;
+  stage: string;
+  lifecycleState?: ProjectLifecycleState;
+  job?: BackgroundJob | null;
+}
+
+export type ProjectLifecycleState =
+  | "new"
+  | "partially-authored"
+  | "needs-review"
+  | "preparing"
+  | "ready-to-start"
+  | "running"
+  | "blocked"
+  | "failed"
+  | "completed"
+  | "unavailable";
+
+export interface ProjectsIndex {
+  projects: ProjectInfo[];
+  current: string | null;
+}
+
+export interface ProjectRemovalResult {
+  path: string;
+  name: string;
+  status: "removed" | "blocked" | "failed";
+  message: string;
+}
+
+export interface RemoveProjectsResult {
+  results: ProjectRemovalResult[];
+  current: string | null;
+}
+
+export interface LogsResponse {
+  lines: string[];
+  truncated: boolean;
+}
+
+export interface FileContent {
+  path: string;
+  content: string;
+}
+
+/** ADR-060: `draft-prd` and `draft-existing-prd` are retained as accepted values
+ * so older Console clients get a clear message instead of a 400, but they no
+ * longer author requirements. Feature authoring is interactive too. */
+export type ControlAction = "run" | "resume" | "pause" | "stop" | "replay" | "reset-changed" | "draft-prd" | "draft-existing-prd" | "draft-team" | "draft-skills" | "rederive" | "compile-manifest" | "feature-prd" | "feature-increment" | "feature-increment-continue";
+
+/** Interactive authoring entry points that open a pre-seeded harness terminal. */
+export type AuthoringSessionTarget = "idea" | "prd" | "feature-prd";
+
+export type ExecutionMode = "auto" | "manual";
+export type SelectionScope = "single" | "range" | "list";
+
+export type BackgroundJobType =
+  | "create-project"
+  | "bootstrap"
+  | "feature-prd"
+  | "feature-increment"
+  | "draft-prd"
+  | "draft-existing-prd"
+  | "draft-team"
+  | "draft-skills"
+  | "rederive"
+  | "compile-manifest"
+  | "engine-run"
+  | "engine-resume"
+  | "engine-replay";
+
+export type BackgroundJobStatus = "running" | "complete" | "failed" | "paused";
+
+export interface BackgroundJob {
+  id: string;
+  type: BackgroundJobType;
+  repoPath: string;
+  pid?: number;
+  taskId?: string;
+  logPath?: string;
+  startedAt: string;
+  updatedAt: string;
+  finishedAt?: string;
+  status: BackgroundJobStatus;
+  message: string;
+  run?: boolean;
+}
+
+/** Summary of background jobs across all registered projects (`GET /api/jobs`). */
+export interface JobsSummary {
+  jobs: BackgroundJob[];
+  active: number;
+  failed: number;
+}
+
+export interface ControlResult {
+  ok: boolean;
+  message: string;
+  pid?: number;
+  job?: BackgroundJob;
+}
+
+export interface TimeoutUpdateResult {
+  ok: boolean;
+  message: string;
+  taskId?: string;
+  affected?: number;
+}
+
+export interface CreateProjectRequest {
+  name: string;
+  description?: string;
+  harness?: string;
+  visibility?: string;
+  parentDir?: string;
+  idea: string;
+  autoDraft?: boolean;
+  /** Max agents to run in parallel (0 means engine default). */
+  concurrency?: number;
+  /** Source document to import as docs/requirements-source.md for feature authoring. */
+  prdPath?: string;
+  /** Server-side paths of research/seed docs to copy into the new repo's docs/research/. */
+  researchPaths?: string[];
+  authoringConfig?: AuthoringConfig;
+}
+
+export interface CreateProjectResult {
+  ok: boolean;
+  message: string;
+  repoDir?: string;
+  logFile?: string;
+  pid?: number;
+  job?: BackgroundJob;
+}
+
+export interface UploadResult {
+  ok: boolean;
+  path?: string;
+  name?: string;
+  message?: string;
+}
+
+export interface LaunchCliResult {
+  ok: boolean;
+  launched?: boolean;
+  cli?: string;
+  command?: string;
+  message?: string;
+}
+
+export interface SelectResult {
+  ok: boolean;
+  repoRoot?: string;
+  message?: string;
+}
+
+export interface OpenResult {
+  ok: boolean;
+  message?: string;
+}

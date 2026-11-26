@@ -1,0 +1,66 @@
+# console-screenshots
+
+Developer tool that regenerates the Forge Console screenshots and the
+[visual tour](../../docs/forge-console-screenshots.md) from a deterministic
+fixture. It is not published or part of any package build.
+
+It:
+
+1. builds the launcher (`dist/cli.js` + `resources/console/client`),
+2. writes a fixed fixture repository under
+   `.scratch/adaptive-console-redesign/board-capture-work` with a seeded
+   `FORGE_HOME` project registry, then removes the fixture,
+3. starts `forge-launcher console` against that fixture,
+4. drives the installed Chrome with `puppeteer-core`,
+5. writes the responsive captures, the numbered tour images, 640px thumbnails,
+   and the walkthrough GIF.
+
+No model or external authoring runs: every timestamp and artifact in the fixture
+is fixed, so captures are stable across runs.
+
+The full capture also runs browser acceptance against the Console at the wide
+(1051px), medium (721px), and narrow (720px) ranges, including destination
+discovery, Project context, and route/project preservation while resizing.
+
+## Usage
+
+```bash
+npm install     # first time; installs puppeteer-core (no bundled browser download)
+npm run acceptance # builds the launcher and runs browser acceptance; does not refresh screenshots
+npm run capture # builds the launcher, then captures
+npm run capture -- --board-only # refreshes only responsive Board captures and tour images
+npm run capture -- --headed   # watch the browser while it captures
+npm run typecheck
+```
+
+## Requirements
+
+- `google-chrome` on `PATH`, or `CHROME_PATH` pointing at a Chrome/Chromium binary.
+- `ffmpeg` on `PATH` (thumbnails and the GIF).
+- Node 18+.
+
+`npm run acceptance` runs the deterministic browser acceptance suite against
+the actual Console server and fixture Projects. It checks user-visible Project
+navigation, lifecycle destinations, review links, and stop confirmation without
+rewriting any screenshot assets. It requires Chrome but not `ffmpeg`.
+
+## What it writes
+
+| Output | Location |
+| --- | --- |
+| Responsive captures | `docs/images/forge-console/current/*.png` |
+| Walkthrough GIF | `docs/images/forge-console/current/console-walkthrough.gif` |
+| Numbered tour images | `docs/images/forge-console/01..14-*.png` |
+| Thumbnails (640px) | `docs/images/forge-console/thumb/*.png` |
+
+## Notes
+
+- The Console Board uses semantic HTML/CSS and does not require PixiJS.
+- The responsive shell includes a medium navigation rail and a narrow drawer
+  capture at `docs/images/forge-console/current/nav-drawer-720.png`.
+- `--board-only` skips unrelated captures and the walkthrough GIF.
+- The **Build status** capture (`overview-1024.png`) is full-page (viewport resized to the content height)
+  so the **Controls** panel, including the **Log harness activity** toggle, is
+  visible.
+- The `tools/console-screenshots/` source is not covered by the launcher's
+  `tsconfig`, so `puppeteer-core` never ships in `dist`.

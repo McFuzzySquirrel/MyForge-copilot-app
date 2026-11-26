@@ -1,0 +1,364 @@
+import type { ITheme, Terminal as XtermTerminal } from "@xterm/xterm";
+import { api } from "../api.js";
+import { el } from "../render/dom.js";
+import { store } from "../state.js";
+import { getResolvedTheme, onThemeChange } from "../theme.js";
+import {
+  clearExternalAuthoringSession,
+  getGuidedAuthoringStep,
+  recordGuidedAuthoringSessionExit,
+  rememberExternalAuthoringSession,
+} from "../project-authoring.js";
+import { appendReplay } from "./terminal-replay.js";
+
+declare global {
+  interface Window {
+    Terminal: typeof import("@xterm/xterm").Terminal;
+    FitAddon: { FitAddon: typeof import("@xterm/addon-fit").FitAddon };
+  }
+}
+
+interface Surface {
+  terminal: XtermTerminal;
+  resizeObserver: ResizeObserver;
+  status: HTMLElement;
+  startButton: HTMLButtonElement;
+  stopButton: HTMLButtonElement;
+  /** Removes the theme listener when the view unmounts. */
+  themeUnsubscribe: () => void;
+}
+
+const DARK_TERMINAL_THEME: ITheme = {
+  background: "#070b16",
+  foreground: "#dbe4ff",
+  cursor: "#dbe4ff",
+  selectionBackground: "rgba(111, 208, 255, 0.28)",
+};
+
+/** A light ANSI palette so log colors stay readable on a white terminal. */
+const LIGHT_TERMINAL_THEME: ITheme = {
+  background: "#ffffff",
+  foreground: "#16203a",
+  cursor: "#16203a",
+  cursorAccent: "#ffffff",
+  selectionBackground: "rgba(11, 99, 206, 0.18)",
+  black: "#000000",
+  red: "#b42318",
+  green: "#107c10",
+  yellow: "#8a5a00",
+  blue: "#0b63ce",
+  magenta: "#a21caf",
+  cyan: "#0e7490",
+  white: "#58627a",
+  brightBlack: "#58627a",
+  brightRed: "#d1242f",
+  brightGreen: "#1a7f37",
+  brightYellow: "#8a5a00",
+  brightBlue: "#0550ae",
+  brightMagenta: "#a21caf",
+  brightCyan: "#0e7490",
+  brightWhite: "#16203a",
+};
+
+function terminalTheme(): ITheme {
+  return getResolvedTheme() === "light" ? LIGHT_TERMINAL_THEME : DARK_TERMINAL_THEME;
+}
+
+interface SessionState {
+  socket: WebSocket | null;
+  /** Output held while the view is unmounted, replayed on remount. */
+  buffer: string;
+  exited: boolean;
+  exitLabel: string | null;
+  statusText: string;
+  /** The attached DOM surface, or null while the view is unmounted. */
+  surface: Surface | null;
+}
+
+function freshSession(): SessionState {
+  return { socket: null, buffer: "", exited: false, exitLabel: null, statusText: "No terminal session running.", surface: null };
+}
+
+// The session outlives the view: navigating to another page unmounts the view
+// but keeps the WebSocket (and therefore the server-side PTY) alive.
+let state: SessionState = freshSession();
+const listeners = new Set<() => void>();
+
+/** True while a terminal session is connected or connecting. */
+export function isTerminalSessionActive(): boolean {
+  const socket = state.socket;
+  return !!socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING);
+}
+
+/** Subscribe to session start/stop/exit changes (used for the nav indicator). */
+export function onTerminalSessionChange(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function notify(): void {
+  for (const listener of listeners) listener();
+}
+
+function token(): string {
+  return document.querySelector<HTMLMetaElement>('meta[name="forge-token"]')?.content ?? "";
+}
+
+function send(message: unknown): void {
+  if (state.socket?.readyState === WebSocket.OPEN) state.socket.send(JSON.stringify(message));
+}
+
+function write(text: string): void {
+  state.surface?.terminal.write(text);
+}
+
+function setStatus(text: string): void {
+  state.statusText = text;
+  if (state.surface) state.surface.status.textContent = text;
+}
+
+function syncControls(): void {
+  const active = isTerminalSessionActive();
+  if (!state.surface) return;
+  state.surface.startButton.disabled = active;
+  state.surface.stopButton.disabled = !active;
+}
+
+export function renderTerminal(container: HTMLElement): void {
+  const mode = el("select", { "aria-label": "Session type" }, [
+    el("option", { value: "harness" }, "Harness session"),
+    el("option", { value: "authoring" }, "Interactive authoring"),
+  ]) as HTMLSelectElement;
+  const target = el("select", { "aria-label": "Authoring session" }, [
+    el("option", { value: "prd" }, "Author a Project brief"),
+    el("option", { value: "idea" }, "Explore an Idea"),
+    el("option", { value: "feature-prd" }, "Author a feature"),
+  ]) as HTMLSelectElement;
+  const prompt = el("input", {
+    type: "text",
+    placeholder: "Describe the feature to add",
+    "aria-label": "Feature description",
+  }) as HTMLInputElement;
+  const authoringFields = el("div", { className: "row gap wrap" }, [target, prompt]);
+  const startButton = el("button", { className: "btn btn-primary", type: "button" }, "Start in Console") as HTMLButtonElement;
+  const externalButton = el("button", { className: "btn", type: "button" }, "Open in external terminal") as HTMLButtonElement;
+  const stopButton = el("button", { className: "btn", type: "button", disabled: true }, "Stop session") as HTMLButtonElement;
+  const status = el("span", { className: "dim small", role: "status" }, state.statusText);
+  const terminalHost = el("div", { className: "console-terminal", "aria-label": "Interactive terminal" });
+  const terminal = new window.Terminal({
+    cursorBlink: true,
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+    fontSize: 13,
+    scrollback: 5000,
+    theme: terminalTheme(),
+  });
+  const fitAddon = new window.FitAddon.FitAddon();
+  terminal.loadAddon(fitAddon);
+  terminal.open(terminalHost);
+  if (!state.socket && !state.buffer && !state.exited) {
+    terminal.writeln("Select a session type, then start. Input and terminal output stay in this page.");
+  }
+  // Input always targets the live session, including one started before this
+  // view mounted (the session survives navigation).
+  terminal.onData((data) => send({ type: "input", data }));
+
+  const resizeObserver = new ResizeObserver(() => {
+    if (state.surface?.terminal !== terminal) return;
+    try {
+      fitAddon.fit();
+      send({ type: "resize", cols: terminal.cols, rows: terminal.rows });
+    } catch {
+      // The terminal can briefly have zero dimensions while its route is hidden.
+    }
+  });
+  resizeObserver.observe(terminalHost);
+
+  // The terminal outlives route changes, so it must follow theme changes made
+  // in Settings while it is open.
+  const themeUnsubscribe = onThemeChange(() => {
+    terminal.options.theme = terminalTheme();
+  });
+  state.surface = { terminal, resizeObserver, status, startButton, stopButton, themeUnsubscribe };
+
+  // Replay output produced while this view was unmounted.
+  if (state.buffer) terminal.write(state.buffer);
+  if (state.exitLabel && !isTerminalSessionActive()) terminal.writeln(`\r\n[Console] ${state.exitLabel}`);
+  status.textContent = state.statusText;
+  syncControls();
+  if (isTerminalSessionActive()) {
+    try {
+      fitAddon.fit();
+      send({ type: "resize", cols: terminal.cols, rows: terminal.rows });
+    } catch {
+      // ignore zero-size fit
+    }
+    terminal.focus();
+  }
+
+  mode.addEventListener("change", () => {
+    authoringFields.hidden = mode.value !== "authoring";
+    prompt.hidden = target.value !== "feature-prd" || mode.value !== "authoring";
+  });
+  target.addEventListener("change", () => {
+    prompt.hidden = target.value !== "feature-prd" || mode.value !== "authoring";
+  });
+
+  // Pre-select an authoring target when arriving from an authoring entry point
+  // (e.g. #/terminal?authoring=idea&prompt=…), so the user can start it in the
+  // Console or an external terminal without re-selecting it.
+  const preselection = new URLSearchParams(location.hash.split("?")[1] ?? "");
+  const preselectedTarget = preselection.get("authoring");
+  if (preselectedTarget === "idea" || preselectedTarget === "prd" || preselectedTarget === "feature-prd") {
+    mode.value = "authoring";
+    target.value = preselectedTarget;
+    const preselectedPrompt = preselection.get("prompt");
+    if (preselectedPrompt) prompt.value = preselectedPrompt;
+  }
+  authoringFields.hidden = mode.value !== "authoring";
+  prompt.hidden = target.value !== "feature-prd" || mode.value !== "authoring";
+  let startedAuthoringTarget: "idea" | "prd" | null = null;
+  let startedRepoRoot: string | null = null;
+
+  startButton.addEventListener("click", () => {
+    if (state.socket) return;
+    if (mode.value === "authoring" && target.value === "feature-prd" && !prompt.value.trim()) {
+      setStatus("Describe the feature before starting its authoring session.");
+      return;
+    }
+    startedAuthoringTarget = mode.value === "authoring" && (target.value === "idea" || target.value === "prd")
+      ? target.value
+      : null;
+    startedRepoRoot = store.summary?.repoRoot ?? null;
+    terminal.clear();
+    state = { ...freshSession(), surface: state.surface };
+    setStatus("Connecting…");
+    const scheme = location.protocol === "https:" ? "wss:" : "ws:";
+    const socket = new WebSocket(`${scheme}//${location.host}/api/terminal`, ["forge-console-terminal", token()]);
+    state.socket = socket;
+    syncControls();
+    notify();
+    socket.addEventListener("open", () => {
+      const request = mode.value === "harness"
+        ? { type: "start", mode: "harness" }
+        : { type: "start", mode: "authoring", target: target.value, ...(prompt.value.trim() ? { prompt: prompt.value.trim() } : {}) };
+      socket.send(JSON.stringify(request));
+    });
+    socket.addEventListener("message", (event) => {
+      if (state.socket !== socket) return;
+      let message: Record<string, unknown>;
+      try {
+        message = JSON.parse(String(event.data)) as Record<string, unknown>;
+      } catch {
+        write("\r\n[Console] Received an invalid terminal response.");
+        return;
+      }
+      if (message.type === "output" && typeof message.data === "string") {
+        state.buffer = appendReplay(state.buffer, message.data);
+        write(message.data);
+      } else if (message.type === "started") {
+        setStatus(`Connected to ${String(message.cli)} in ${String(message.cwd)}.`);
+        syncControls();
+        // Only touch the terminal if this view is still the attached surface;
+        // a remount replays the buffer and re-sends its own resize.
+        if (state.surface?.terminal === terminal) {
+          try {
+            fitAddon.fit();
+            send({ type: "resize", cols: terminal.cols, rows: terminal.rows });
+          } catch {
+            // ignore zero-size fit
+          }
+          terminal.focus();
+        }
+      } else if (message.type === "error") {
+        const detail = typeof message.message === "string" ? message.message : "Session failed.";
+        state.exitLabel = detail;
+        setStatus(detail);
+        write(`\r\n[Console] ${detail}`);
+      } else if (message.type === "exit") {
+        state.exited = true;
+        state.exitLabel = `Session ended (exit ${String(message.exitCode)}).`;
+        setStatus(state.exitLabel);
+        if (startedRepoRoot && startedAuthoringTarget) {
+          recordGuidedAuthoringSessionExit(startedRepoRoot, startedAuthoringTarget, Number(message.exitCode));
+        }
+      }
+    });
+    socket.addEventListener("close", () => {
+      if (state.socket !== socket) return;
+      state.socket = null;
+      syncControls();
+      if (!state.exited) {
+        state.exitLabel = state.exitLabel ?? "Terminal connection closed.";
+        setStatus(state.exitLabel);
+      }
+      notify();
+    });
+    socket.addEventListener("error", () => {
+      setStatus("Could not connect to the Console terminal.");
+    });
+  });
+
+  stopButton.addEventListener("click", () => {
+    send({ type: "stop" });
+    setStatus("Stopping session…");
+  });
+
+  externalButton.addEventListener("click", () => {
+    if (mode.value === "harness") {
+      void api.launchCli()
+        .then((result) => { setStatus(result.message ?? "External terminal requested."); })
+        .catch((error: unknown) => { setStatus(error instanceof Error ? error.message : "Could not open external terminal."); });
+      return;
+    }
+
+    const authoringTarget = target.value as "idea" | "prd" | "feature-prd";
+    const repoRoot = store.summary?.repoRoot ?? null;
+    const guidedStep = repoRoot ? getGuidedAuthoringStep(repoRoot) : null;
+    const guidedTarget = Boolean(repoRoot && (
+      authoringTarget === "idea" && guidedStep === "idea"
+      || authoringTarget === "prd" && guidedStep === "brief"
+    ));
+    const artifactPath = authoringTarget === "idea" ? "docs/IDEA.md" : "docs/PRD.md";
+    const sessionPrompt = prompt.value.trim() || undefined;
+    const launch = () => api.startAuthoringSession(authoringTarget, sessionPrompt);
+    const fallback = guidedTarget && repoRoot
+      ? api.docContent(artifactPath)
+        .then((file) => file.content)
+        .catch(() => null)
+        .then((baseline) => {
+          rememberExternalAuthoringSession(repoRoot, authoringTarget as "idea" | "prd", baseline);
+          return launch();
+        })
+      : launch();
+    void fallback
+      .then((result) => {
+        if (!result.ok && guidedTarget && repoRoot) clearExternalAuthoringSession(repoRoot);
+        setStatus(result.message ?? "External terminal requested.");
+      })
+      .catch((error: unknown) => {
+        if (guidedTarget && repoRoot) clearExternalAuthoringSession(repoRoot);
+        setStatus(error instanceof Error ? error.message : "Could not open external terminal.");
+      });
+  });
+
+  container.appendChild(el("section", { className: "panel" }, [
+    el("h1", null, "Interactive terminal"),
+    el("p", { className: "dim" }, "Run the selected harness or an authoring interview in this Console. The session keeps running if you navigate away. Only the supported harness CLI is launched; no general-purpose shell is exposed."),
+    ...(preselectedTarget === "idea" || preselectedTarget === "prd"
+      ? [el("p", null, [el("a", { className: "btn btn-sm", href: "#/overview" }, "Return to Project guide")])]
+      : []),
+    el("div", { className: "row gap wrap terminal-controls" }, [mode, authoringFields, startButton, stopButton, externalButton]),
+    status,
+    terminalHost,
+  ]));
+}
+
+export function unmountTerminal(): void {
+  const surface = state.surface;
+  if (!surface) return;
+  surface.themeUnsubscribe();
+  surface.resizeObserver.disconnect();
+  surface.terminal.dispose();
+  state.surface = null;
+  // Keep state.socket alive so the session continues in the background.
+}
