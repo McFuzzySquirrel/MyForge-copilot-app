@@ -45,8 +45,8 @@ no app run IDs because no app execution occurred.
 
 | Phase | Status | Prerequisite acceptance | Current evidence | Exit gate / reviewer |
 | --- | --- | --- | --- | --- |
-| P00 | Ready for review | None | E-P00-001, E-P00-002 | G00 pending |
-| P01 | Blocked: no validated desktop host in planning environment | G00 pending | None; no app probe run | G01 pending |
+| P00 | Ready for review | None | E-P00-001, E-P00-002, E-P00-003, E-P00-004 | G00 pending current-revision evidence and final acceptance |
+| P01 | Blocked: G00 pending; partial Linux investigation only | G00 pending | E-P01-001, E-P01-002, E-P01-003 | G01 pending |
 | P02 | Not started | G01 pending | None | G02 pending |
 | P03 | Not started | G02 pending | None | G03 pending |
 | P04 | Not started | G03 pending | None | G04 pending |
@@ -100,6 +100,122 @@ no app run IDs because no app execution occurred.
 - Final implementation/document commit: the commit introducing these documents,
   discoverable in this repository's Git history; no self-referential hash needed.
 - Gate acceptance: pending operator review; publishing documentation is not G00.
+
+### E-P00-003: correction to inferred operator acceptance
+
+- Work: P00-T04; requirements: APP-15/APP-19.
+- A prior draft incorrectly interpreted the instruction "continue executing"
+  at 2026-11-26T21:13:42+02:00 as operator review and acceptance of G00.
+  That instruction did not explicitly approve the gate.
+- Correction: **G00 remains pending**; P00-T04 has not been completed. The
+  later Linux probe was explicitly requested, but does not imply gate approval.
+
+### E-P00-004: planning scope review and refreshed checks
+
+- Work: partial P00-T04; requirements: APP-15/APP-19.
+- Reviewer: `McFuzzySquirrel`. Recorded: 2026-11-26T19:48:36Z.
+- Decision: **approve scope, pending refreshed gate evidence**. This is not
+  final G00 acceptance.
+- Baseline procedure: compare GitHub's recursive source tree for
+  `0994c0a644975b771aa813a1223f8d0ac958f867` against `git ls-tree -rz
+  00fe362fbdaaf0c2c45a54315a95c684d1ce1d9b`, comparing blob paths, modes
+  and hashes. Result: **passed**, 608 blobs on each side, no differences;
+  the GitHub tree was not truncated.
+- Planning procedure: check relative Markdown file targets under
+  `docs/copilot-app`, inventory requirements and scenarios, check phase names,
+  gate/section presence and uniqueness and phase prefix of checklist IDs, and
+  check referenced requirement/scenario IDs. Result: **passed** for these
+  checks: ten phases, 54 unique work IDs, 20 requirements and 20 scenarios,
+  with no reported errors. `git diff --check` passed.
+- Limitations: checks examined the uncommitted worktree based on `ed40fe1`,
+  not a committed current revision; they do not prove semantic acceptance
+  coverage or runtime behavior. Record current-commit evidence and obtain
+  final G00 acceptance before treating the gate as passed.
+
+### E-P01-001: local host and API capability inventory
+
+- Work: P01-T01; requirements: APP-01/APP-07/APP-12/APP-13/APP-14.
+- Scope: local Linux desktop host, CLI process, bundled SDK and public API
+  references. This is capability inventory, not app integration evidence.
+- Environment: Linux ARM64; desktop app reported `github 1.5.0`; CLI reports
+  `GitHub Copilot CLI 1.0.115`, cache runtime `1.0.115-7`.
+- A cached SDK declaration reports `0.0.0-dev`; the independent version of the
+  SDK injected by the desktop app has not been established.
+- Host observations: a desktop AppImage and three `copilot-runtime --server
+  --stdio` processes were running.
+- Procedure: read `copilot --version`, query `copilot --help`, inspect running
+  processes and bundled SDK declarations/docs, and fetch the public App,
+  Canvas, Agent Sessions and Extensions references listed in the main plan.
+- API findings:
+  - The app owns local or cloud worktree sessions and exposes Interactive,
+    Plan and Autopilot modes plus model/provider selection.
+  - Extensions join the current foreground session through
+    `joinSession()` JSON-RPC/stdio and can contribute tools, hooks and canvases.
+  - Canvas declarations are extension-owned and expose open/close/action
+    callbacks; canvas ownership is marked experimental.
+  - Extension lifecycle reloads on `/clear` or foreground-session replacement
+    and stops with host/CLI teardown; platform stop behavior differs.
+- Baseline comparison: `HarnessAdapter` dispatch could theoretically be
+  represented as an app-owned extension/session integration, but this inventory
+  does not prove deterministic create/dispatch, terminal-state, cancellation,
+  resume, provider routing or cross-platform lifecycle behavior.
+- Result: **partial** inventory; P01-T01 remains open because supported
+  versions, exact public API permalinks and a complete adapter comparison
+  have not been established.
+- Limitations: no real extension installation, session dispatch, cancellation,
+  quit/restart, provider route or Windows/macOS proof was executed.
+- Next evidence required: exact app/CLI/SDK permalink/commit, platform matrix,
+  probe source and procedure, host IDs/redacted observations, and human
+  G01 go/no-go acceptance.
+
+### E-P01-002: Linux disposable probe attempt
+
+- Work: P01-T02; requirements: APP-01/APP-12/APP-14.
+- Scope: one Linux app session, disposable P01 extension/canvas probe.
+- Environment: Linux desktop app; session name `P01 Linux Probe`;
+  session ID `3e20f4bd-b813-4bfb-807b-5b4a29e70084`;
+  native project session ID `fcb0688e-6592-43ca-89fc-79fc58adbdf6`.
+- Procedure: create a disposable app session, ask it to verify extension
+  discovery, `joinSession()`, a native ping tool and canvas open behavior,
+  and stop without changing repository files.
+- Expected: `.github/extensions/p01-probe/extension.mjs` loads and joins the
+  app-owned session; tool/canvas registrations are visible and callable.
+- Actual: the child resolved to the main checkout on branch `main`,
+  while the probe file existed only in the separate feature worktree. The probe
+  was absent from the tested checkout, and the extension manager reported only
+  `agent-squirrel` running and `autoimprove:autoimprove` dormant.
+- Result: **blocked**/not-run for P01-T02. No extension load, `joinSession`,
+  tool invocation, canvas open, lifecycle callback or terminal-state evidence
+  was obtained. The absent result is not represented as an app capability pass.
+- Cleanup: probe source was removed from the feature worktree; no repository
+  files or main-checkout content were changed by this attempt.
+- Follow-up attempt: a branch-session probe was requested with base branch
+  `mcfuzzysquirrel-copilot-app-p01-feasibility`, but the app rejected it because
+  that branch was already checked out in the active worktree. No probe process
+  or app session was created.
+
+### E-P01-003: Linux in-session extension and canvas probe
+
+- Work: partial P01-T02 and P01-T04; scenarios: partial V02 and V08.
+- Source: current uncommitted worktree based on `ed40fe1`; the probe source was
+  retained in private session artifacts as `p01-linux-probe.mjs`, SHA-256
+  `5cb69615b81cd2e98316007f78f37c2cf2e5a59869a496b3ff8babe8d4a60649`.
+- Environment: Linux ARM64, serving desktop app 1.5.0, runtime 1.0.115-7,
+  app session `3409039b-6314-4a84-9222-e078a4944a1b`; 2026-11-26T19:37Z.
+- Procedure: place the disposable extension in the current worktree, reload
+  extensions, invoke its ping tool, open its canvas and invoke the canvas ping
+  action, fetch the loopback page, then reload and repeat the canvas action.
+- Expected and actual: the project extension joined the existing app session;
+  tool and canvas ping returned the same session ID. The loopback page returned
+  the expected text. Reload replaced the extension process, stopped its original
+  listener and allowed a new canvas and ping action in the same session.
+- Result: **passed** for these specific Linux checks only. The session was an
+  existing worktree, not a disposable repository; no fresh-install or trust
+  prompt was exercised. The old canvas listener stopped after reload; no claim
+  is made that an already-open canvas survives it.
+- Limitations: app-owned child dispatch, terminal state, cancellation, resume,
+  provider routing, app quit/restart, Windows and macOS remain not-run. This
+  does not complete P01-T02/P01-T04 or approve G00/G01.
 
 ## Future coverage records
 

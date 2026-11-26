@@ -2,8 +2,8 @@
 
 [Main plan](../IMPLEMENTATION-PLAN.md) | [Previous](00-baseline-and-traceability.md) | [Next](02-contracts-and-core.md)
 
-**Prerequisite:** G00. **Exit:** G01. **Status:** not started; desktop validation
-blocked in the current environment. **Requirements:** APP-01, APP-07, APP-12,
+**Prerequisite:** G00. **Exit:** G01. **Status:** partial Linux investigation;
+G00 and cross-platform qualification remain pending. **Requirements:** APP-01, APP-07, APP-12,
 APP-13, APP-14; evaluate APP-18 separately, do not require it for G01.
 **Sources:** S-03, S-07, S-13 and the main plan's external API references.
 
@@ -12,7 +12,7 @@ APP-13, APP-14; evaluate APP-18 separately, do not require it for G01.
 - [ ] **P01-T01:** Record supported app, CLI and extension SDK versions and
   exact public API references; compare baseline `HarnessAdapter` requirements
   with extension-callable APIs. Distinguish built-in agent tools, external SDK
-  clients and actual app-owned sessions.
+  clients and actual app-owned sessions. Partial evidence: E-P01-001.
 - [ ] **P01-T02:** On trusted disposable repositories in Windows/macOS/Linux,
   install the smallest probe extension/canvas. Capture the actual composition
   root, workspace identity, trust prompts, permissions and extension ownership.

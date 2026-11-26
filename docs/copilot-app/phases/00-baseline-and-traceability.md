@@ -19,6 +19,8 @@ operator review. **Requirements:** APP-15, APP-19. **Sources:** S-01, S-12.
   E-P00-002; this is evidence infrastructure, not app-run evidence.
 - [ ] **P00-T04:** Operator reviews scope, dependencies, acceptance coverage and
   baseline provenance; record name/date/decision and evidence IDs for G00.
+  The operator approved the scope pending refreshed gate evidence (E-P00-004);
+  G00 remains pending.
 
 ## Specific future sub-agent opportunities
 
@@ -39,6 +41,7 @@ single report; the coordinator resolves findings and updates the ledger.
 - Operator records acceptance of APP-15/APP-19 planning scope. Import and
   document validation alone do not approve the proposed architecture.
 
-**Gate evidence:** E-P00-001, E-P00-002 and a future operator acceptance record.
+**Gate evidence:** E-P00-001, E-P00-002 and E-P00-004; current-revision
+evidence and final gate acceptance remain pending.
 **Failure handling:** repair baseline/document defects before P01. Preserve the
 source repository unchanged. Do not overwrite user edits to the new repository.

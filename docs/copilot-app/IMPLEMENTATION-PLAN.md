@@ -243,5 +243,7 @@ guarantees. Capture exact version/permalink/access date in P01 evidence.
 - [Extension entry API](https://github.com/microsoft/copilot-sdk/blob/main/nodejs/src/extension.ts)
 - [Canvas API](https://github.com/microsoft/copilot-sdk/blob/main/nodejs/src/canvas.ts)
 
-Current planning environment has Copilot CLI 1.0.112 but no verified active
-desktop app. CLI documentation and mock tests cannot pass G01.
+The planning baseline had Copilot CLI 1.0.112 and no verified active desktop
+app. A later Linux desktop probe is recorded in E-P01-003; it does not establish
+app-native orchestration or cross-platform support. CLI documentation and mock
+tests cannot pass G01.
