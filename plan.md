@@ -1,5 +1,9 @@
 # Plan: Consolidate Forge CLI Scripts into a Single `forge-launcher` npm Package
 
+> This is an inherited completed MyForge plan, preserved as historical context.
+> The new edition's active plan is
+> [MyForge Copilot App implementation](docs/copilot-app/IMPLEMENTATION-PLAN.md).
+
 **Branch:** `optimization/task-breakdown`
 **Status:** Complete
 **Decision:** [ADR-023: Forge Launcher as a Node npm Package](docs/adr/023-forge-launcher-npm-package.md)

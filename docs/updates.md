@@ -4,6 +4,21 @@ Detailed release and change notes for MyForge.
 
 ---
 
+## November 2026 - v3.130
+
+### Plan a separately maintained Copilot app edition
+
+- Imported a fresh source snapshot of MyForge v3.129, preserving inherited
+  standalone tooling and historical documents.
+- Added the [Copilot app implementation plan](copilot-app/IMPLEMENTATION-PLAN.md),
+  ten linked phase documents, requirement/scenario traceability, dependency and
+  acceptance gates, proposed sub-agent scopes, rollout and migration checks.
+- Added an [execution evidence protocol and ledger](copilot-app/evidence/README.md).
+  This is planning documentation only: no app implementation, runtime
+  qualification, sub-agent execution or plugin release has occurred.
+
+---
+
 ## November 2026 - v3.129
 
 ### Continue the MyForge story through the Console and the project lifecycle

@@ -1,13 +1,19 @@
 
 # MyForge
 
+> **Copilot app edition: planning only.** This repository contains a fresh
+> MyForge source baseline and a [multi-phase implementation plan](docs/copilot-app/IMPLEMENTATION-PLAN.md)
+> with [execution evidence tracking](docs/copilot-app/evidence/README.md).
+> No app plugin or app-native engine has been implemented. The standalone
+> overview and commands below describe the inherited MyForge baseline.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Bash](https://img.shields.io/badge/Bash-4EAA25?logo=gnubash&logoColor=fff)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=fff)
 
 > MyForge turns an idea into a reviewed PRD, a specialist agent team, and an autonomous build.
 
-**Latest: v3.129** — see [docs/updates.md](docs/updates.md) for release notes.
+**Latest: v3.130** — see [docs/updates.md](docs/updates.md) for release notes.
 
 MyForge is a PRD-first workflow for turning product requirements into working software. It combines structured planning, agent-based implementation, and execution orchestration in one path so a project can move from concept to build without losing the review checkpoints that matter.
 
