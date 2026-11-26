@@ -1,4 +1,4 @@
-# P07: cross-platform and provider parity qualification
+# P07: Linux and provider parity qualification
 
 [Main plan](../IMPLEMENTATION-PLAN.md) | [Authoring prerequisite](05-authoring-and-packaging.md) | [Canvas prerequisite](06-canvas-and-control.md) | [Next](08-migration-and-rollout.md)
 
@@ -8,7 +8,7 @@
 
 ## Deliverables and work checklist
 
-- [ ] **P07-T01:** Resolve Q05 with maintainer; record actual Windows/macOS/Linux
+- [ ] **P07-T01:** Resolve Q05 with maintainer; record actual Linux
   test hosts, app/CLI/SDK/OS versions and configured provider fixtures. No
   fabricated version floor or unapproved model/budget limit.
 - [ ] **P07-T02:** Run the parity catalog V01-V18 against implementation commits.
@@ -29,12 +29,12 @@
   version/provider matrix; unverified mandatory criteria block release.
 
 Outputs: qualification report and coverage, CI/typecheck/test results,
-cross-platform and provider matrix, actual app-run evidence, review acceptance.
+Linux and provider matrix, actual app-run evidence, review acceptance.
 
 ## Specific future sub-agent opportunities
 
-Independent platform testers can execute one shared qualified fixture on
-separate hosts. A test analyst audits APP-to-V-to-evidence coverage; a review
+Independent testers can execute the shared qualified fixture on the Linux
+test host. A test analyst audits APP-to-V-to-evidence coverage; a review
 specialist inspects the integrated diff and behavior gaps. No agent silently
 changes implementation mid-certification. Coordinator triages defects, routes
 bounded fixes to their owning phase, invalidates superseded evidence and
@@ -45,7 +45,9 @@ requalifies. Only the operator accepts G07.
 All mandatory requirements have passing current-commit evidence on their
 applicable platform/provider cells and no blocking unresolved work. Existing
 adapter/engine/launcher typechecks and suites pass; app install, main workflow,
-review safety and interruption/recovery pass on Windows/macOS/Linux.
+review safety and interruption/recovery pass on Linux. Windows/macOS are
+deferred to a potential v2 and must not be claimed as supported without
+separate qualification.
 
 Compare actual run/task/attempt, report, outputs, validation command results,
 integration and audit identities, not just a green Board. Skipped/not-run tests

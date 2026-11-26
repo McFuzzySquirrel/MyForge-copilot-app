@@ -4,6 +4,28 @@ Detailed release and change notes for MyForge.
 
 ---
 
+## November 2026 - v3.131
+
+### Changed
+
+- Revised the initial platform and qualification gates to target Linux;
+  Windows and macOS are deferred for possible v2 support.
+- Approved evaluating workflow-owned subagents rather than requiring separate
+  app project sessions; parity, recovery and safety gates remain in force.
+- Scoped the planned initial app edition to sequential execution and task
+  session scope; concurrent isolated execution and phase session scope are
+  deferred and must be rejected visibly.
+- Recorded the serving desktop app version and corrected the earlier assumption
+  that no app session was available. App-native extension dispatch and lifecycle
+  still require a real probe and review.
+
+### Added
+
+- Added user and administrator guides, an ADR index and draft release notes for
+  the inherited standalone product and the planned app edition.
+
+---
+
 ## November 2026 - v3.130
 
 ### Plan a separately maintained Copilot app edition

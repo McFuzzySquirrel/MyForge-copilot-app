@@ -12,10 +12,13 @@
   including app/plugin/session reload and duplicate extension instances.
   Choose storage/locking from P01/P02 evidence; do not assume PID identity,
   shared local paths, graceful shutdown or extension uniqueness.
-- [ ] **P04-T02:** Reconcile in-flight native sessions before deciding retry,
+- [ ] **P04-T02:** Reconcile in-flight app-managed task executions before deciding retry,
   cancellation or continuation. Persist before external dispatch and after
   settlement; an unknown result must block safely rather than rerun blindly.
-  Recovery must not depend on a final shutdown callback.
+  Recovery must not depend on a final shutdown callback. A worker cancelled by
+  app quit is an interrupted attempt: detect and keep or revert its partial
+  workspace changes, then retry as a new attempt with its own worker allowance;
+  never resume the cancelled run with a raised limit (D-13).
 - [ ] **P04-T03:** Implement safe pause/stop/resume/replay and state revision
   checks. Define behavior during dispatch, verification and integration;
   preserve manual selection and relevant phase fingerprints on reconciliation.
@@ -46,7 +49,8 @@ records on behalf of a human.
 Run V07-V09, V11, V12 and import parts of V18. Interrupt at multiple boundaries;
 reopen, reload plugins and introduce duplicate owners. Assert no lost settled
 evidence, duplicate effect, unsafe retry or success-shaped fallback. Check
-Windows immediate teardown as well as macOS/Linux shutdown behavior.
+Linux shutdown behavior; retain the no-graceful-shutdown assumption for any
+future platform qualification.
 
 Pause/resume is demonstrated in real app sessions; hard-crash recovery is safe.
 Operator-only approval and digest invalidation pass. Backups/restoration work
