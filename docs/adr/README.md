@@ -88,6 +88,7 @@ Status and date are transcribed where recorded; an empty field is marked
 | [ADR-079](079-retire-forge-into-support-team.md) | Retire Forge scaffolding into a repository-derived support team | Accepted | October 2026 |
 | [ADR-080](080-semantic-console-board.md) | Semantic HTML baseline for the Console Board | Accepted | 2026-11-04 |
 | [ADR-081](081-adaptive-project-lifecycle-and-start-build-gates.md) | Adaptive Project lifecycle and explicit Build-start gates | Accepted | 2026-11-04 |
+| [ADR-082](082-canvas-led-orchestration.md) | Canvas-led app orchestration | Accepted direction | 2026-11-27 |
 
 ## Scope
 

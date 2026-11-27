@@ -8,12 +8,13 @@
 > **Copilot app edition: planning only.** This repository contains a fresh
 > MyForge source baseline and a [multi-phase implementation plan](docs/copilot-app/IMPLEMENTATION-PLAN.md)
 > with [execution evidence tracking](docs/copilot-app/evidence/README.md).
-> No app plugin or app-native engine has been implemented. The standalone
-> overview and commands below describe the inherited MyForge baseline.
+> The planned canvas-led workflow replaces the proposed engine port. No app
+> plugin has been implemented. The standalone overview and commands below
+> describe the inherited baseline, which is planned for retirement.
 
 > MyForge turns an idea into a reviewed PRD, a specialist agent team, and an autonomous build.
 
-**Latest: v3.131** — see [docs/updates.md](docs/updates.md) for release notes.
+**Latest: v3.132** — see [docs/updates.md](docs/updates.md) for release notes.
 
 ## Table of Contents
 
@@ -209,9 +210,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, checks and review expectations
 
 ## What's Next
 
-The [Copilot app edition](docs/copilot-app/IMPLEMENTATION-PLAN.md) is planned
-for Linux first. Its app-native execution and recovery remain unproven; Windows
-and macOS are deferred to a possible v2.
+The [Copilot app plan](docs/copilot-app/IMPLEMENTATION-PLAN.md) proposes a
+canvas-led, orchestrator-managed workflow. Its execution, recovery and
+app API compatibility remain subject to qualification in the Copilot app.
 
 ## License
 
