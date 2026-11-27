@@ -7,14 +7,14 @@ raw sensitive artifacts in approved private storage.
 
 | Field | Value to record |
 | --- | --- |
-| Evidence ID | E-Pxx-nnn |
-| Phase / work / gate | Pxx / Pxx-Tnn / Gxx |
-| Requirement / scenario | APP-nn / Vnn; list each checked criterion |
+| Evidence ID | E-Nxx-nnn |
+| Phase / work / gate | Nxx / Nxx-Wnn / applicable phase gate |
+| Criterion / scenario | Exact plan criterion and scenario checked |
 | Evidence kind | Documentation analysis / unit / contract / real app integration / human review |
 | Source and implementation commit | Exact revisions; dirty-tree changes if applicable |
 | Environment | OS/app/CLI/SDK/Node/provider/model identity; no credentials |
 | Operator and timestamp | Actual runner/reviewer and check time |
-| Run/task/attempt/native session | Actual IDs if applicable; otherwise not applicable |
+| Run/work item/attempt/native session | Actual IDs if applicable; otherwise not applicable |
 | Prerequisite gate records | Accepted evidence and reviewer; do not infer acceptance |
 | Procedure | Exact commands or repeatable interactive steps, fixture and scope |
 | Expected | Measurable result and required negative behavior |

@@ -4,6 +4,23 @@ Detailed release and change notes for MyForge.
 
 ---
 
+## November 2026 - v3.132
+
+### Changed
+
+- Replaced the proposed engine port with a canvas-led app plan covering idea,
+  optional research, reviewed specification, evidence-backed implementation
+  plan, team preparation and orchestrator-managed execution.
+- Preserved the port's feasibility evidence as historical findings and planned
+  retirement of the inherited standalone stack after its dependencies are
+  replaced. This is a direction change, not an implemented app.
+- Treat the Copilot app as the platform boundary rather than adding a separate
+  operating-system support matrix.
+- Prepared an opt-in subagent feasibility probe; it does not yet establish app
+  integration or recovery support.
+
+---
+
 ## November 2026 - v3.131
 
 ### Changed

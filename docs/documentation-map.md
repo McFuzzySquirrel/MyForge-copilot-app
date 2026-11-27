@@ -31,9 +31,9 @@ Before completing the change:
 | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Contributor workflow and contribution expectations. | Contributor-facing workflow or contribution policy changes. |
 | [`ARCHITECTURE.md`](../ARCHITECTURE.md) | High-level repository architecture. | Component boundaries, data flow, or system structure changes. |
 | [`plan.md`](../plan.md) | Project-level planning and direction. | Roadmap, priorities, or planned work changes. |
-| [`docs/copilot-app/IMPLEMENTATION-PLAN.md`](copilot-app/IMPLEMENTATION-PLAN.md) | Proposed app-edition scope, requirement IDs, dependencies, acceptance scenarios and unresolved decisions. Not an executable manifest. | Approved app scope, capability findings, architecture or phase dependencies change. |
-| [`docs/copilot-app/phases/`](copilot-app/phases/) | One document per app implementation phase, with stable work IDs, proposed sub-agent scopes and exit gates. | Phase tasks, checks, risks or prerequisites change; mark completion only with evidence. |
-| [`docs/copilot-app/evidence/README.md`](copilot-app/evidence/README.md) | Evidence protocol and phase/gate ledger; public records must be sanitized. | Checks execute, findings change or an operator accepts/rejects a gate. Do not fabricate runtime evidence. |
+| [`docs/copilot-app/IMPLEMENTATION-PLAN.md`](copilot-app/IMPLEMENTATION-PLAN.md) | Active canvas-led app direction, phased work, dependencies and gates. Not a generated project plan or executable manifest. | Approved app scope, capability findings, architecture or phase dependencies change. |
+| [`docs/copilot-app/evidence/README.md`](copilot-app/evidence/README.md) | Replacement evidence protocol and phase ledger, plus historical port findings; public records must be sanitized. | Checks execute, findings change or an operator accepts/rejects a gate. Do not fabricate runtime evidence. |
+| [`docs/copilot-app/probes/workflow-subagent/`](copilot-app/probes/workflow-subagent/README.md) | Opt-in app-managed subagent feasibility probe and procedure; not a production extension. | Probe behavior, safety instructions or host API assumptions change. |
 
 ### Product and user-facing documentation
 
