@@ -4,6 +4,21 @@ Detailed release and change notes for MyForge.
 
 ---
 
+## November 2026 - v3.133
+
+### Changed
+
+- Recorded a limited Copilot desktop 1.5.0 canvas capability probe: canvas
+  discovery, open/action routing, renderer response and read-only workspace
+  access passed. A single bounded worker returned the expected marker.
+  Added a v1 authoritative artifact contract for `.myforge/`, accepted as the
+  contract basis. Host session dispatch, worker isolation and write/recovery
+  behavior remain unverified. The schema accepts representative artifact
+  shapes and rejects agent approvals, unapproved external skills and
+  incomplete specifications.
+
+---
+
 ## November 2026 - v3.132
 
 ### Changed

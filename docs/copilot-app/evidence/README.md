@@ -47,7 +47,7 @@ output in private session history rather than this public ledger.
 | Phase | Status | Evidence / gate |
 | --- | --- | --- |
 | N00 | Ready for review | E-N00-001; operator gate acceptance pending |
-| N01 | In progress | E-N01-001, E-N01-002; real app probe and contracts pending |
+| N01 | In progress | E-N01-001–E-N01-007; contract basis accepted; session dispatch and write/recovery checks pending |
 | N02 | Not started | Authoring pending |
 | N03 | Not started | Plan and team preparation pending |
 | N04 | Not started | Orchestrator execution pending |
@@ -108,6 +108,121 @@ output in private session history rather than this public ledger.
   wiring, specialist isolation and recovery remain unverified. Documentation
   inspected at its current online revision is a capability lead, not a pinned
   runtime guarantee.
+
+### E-N01-003: serving desktop app identity
+
+- Work: partial N01-W04. Evidence kind: app identity capture, not capability
+  verification. Date: 2026-11-28.
+- Source: `6ae5dd664dfe3d582b17b0abec16000fd2368ccc`.
+- Environment: GitHub Copilot desktop app `1.5.0` (stamped build), Linux.
+- Procedure: query the serving app version; inspect the bundled SDK's CLI
+  version and protocol declarations; run `copilot --version` in the workspace.
+- Expected: record each runtime identity separately and do not conflate the
+  terminal CLI version with the app's bundled runtime.
+- Actual: the app tool returned `1.5.0`; bundled declarations report Copilot
+  CLI `1.0.115-7` and SDK protocol `4`; the separate terminal command reports
+  Copilot CLI `1.0.117`. The SDK package semantic version was not exposed.
+- Outcome: **passed** for the listed version capture only. These versions do
+  not qualify session dispatch, subagent identity, interruption or recovery.
+- Limitations: this does not establish that the app can host the planned
+  extension or provide any execution mode required by N01-W01.
+
+### E-N01-004: canvas and workspace read access
+
+- Work: partial N01-W01. Evidence kind: real app integration, limited to a
+  session-scoped capability probe. Date: 2026-11-28.
+- Source: repository commit
+  `6ae5dd664dfe3d582b17b0abec16000fd2368ccc`; probe extension was session-scoped
+  and not committed.
+- Environment: GitHub Copilot desktop app `1.5.0`; bundled CLI declaration
+  `1.0.115-7`; SDK protocol `4`; Linux workspace. The package semantic version
+  was not exposed.
+- Procedure: syntax-check the probe; reload extensions; discover the canvas
+  action; open the canvas; invoke its read-only report action; request the
+  loopback renderer and confirm its HTML response. The action checks
+  readability of the project plan relative to the extension's working
+  directory and the session workspace directory without returning either path.
+- Expected: the registered canvas and action are discoverable; open returns a
+  renderer URL; action reports whether session/canvas identifiers and both
+  workspace reads are available; the renderer responds successfully.
+- Actual: syntax check passed; discovery returned `report_capabilities`; open
+  returned an instance and loopback URL; action reported all three identifier
+  and both read-access checks as true; the renderer returned the probe page.
+- Outcome: **passed** for canvas discovery, open/action routing, renderer
+  response and read access in this session. No project or session files were
+  written.
+- Limitations: the canvas API is experimental. This does not test artifact
+  persistence or writes, separate app-managed session dispatch, subagent
+  identity/isolation/visibility, cancellation, interruption or recovery.
+
+### E-N01-005: bounded subagent response
+
+- Work: partial N01-W01. Evidence kind: real app integration through the
+  experimental Dynamic Workflows API. Date: 2026-11-28.
+- Source: repository commit
+  `6ae5dd664dfe3d582b17b0abec16000fd2368ccc`; the staged probe copy was
+  removed after the run.
+- Environment: GitHub Copilot desktop app `1.5.0`; bundled CLI declaration
+  `1.0.115-7`; SDK protocol `4`; Linux workspace. The package semantic version
+  was not exposed.
+- Procedure: after explicit operator authorization, stage and load the
+  documented probe extension; invoke its start tool once; inspect the run
+  status and result through the probe status tool and workflow run record;
+  remove the staged copy and reload extensions.
+- Expected: one bounded worker receives instructions to use no tools, inspect
+  no files and make no changes; completion is reported only when its exact
+  marker is verified.
+- Actual: one worker completed on attempt 1 and returned `MYFORGE_PROBE_OK`;
+  the status tool reported `completed` and `markerMatched: true`. The start
+  response initially reported `running`, not completion.
+- Outcome: **passed** for dispatching one worker and verifying its bounded
+  response. The run did not perform workspace operations.
+- Limitations: this does not establish specialist identity, isolation,
+  visibility, cancellation, interruption or recovery. It also does not test
+  separate app-managed session dispatch or justify parallel execution.
+
+### E-N01-006: project artifact contract draft validation
+
+- Work: partial N01-W02. Evidence kind: contract documentation and schema
+  validation. Date: 2026-11-28.
+- Source: repository commit
+  `6ae5dd664dfe3d582b17b0abec16000fd2368ccc`; contract files are in the current
+  uncommitted worktree.
+- Environment: Python `3.14.4`, `jsonschema` `4.19.2`.
+- Procedure: define the proposed v1 artifact envelope and schemas, record the
+  selected `.myforge/` project path and lifecycle invariants, validate the
+  Draft 2020-12 schema with Python `jsonschema`, test seven valid artifact
+  shapes and three negative cases, and run `git diff --check`.
+- Expected: machine-readable JSON parses; contract identifies authoritative
+  artifacts, stable references, review invalidation, edit conflicts and
+  recovery boundaries without claiming host support.
+- Actual: the Draft 2020-12 schema validated; seven representative artifact
+  shapes were accepted. External skills without approval, agent reviews and
+  specifications with no stories/requirements were rejected. Whitespace
+  checks passed. The contract was a draft at the time of this validation;
+  operator acceptance is recorded separately in E-N01-007.
+- Outcome: **passed** for schema shape, required-content and approval-boundary
+  checks only; no host write/reconciliation test was run.
+- Limitations: the accepted contract basis has no implemented writer,
+  validator, migration or recovery path. N01 gate acceptance remains pending.
+
+### E-N01-007: v1 artifact contract basis review
+
+- Work: N01-W02. Evidence kind: human review of the artifact contract basis.
+- Source: current uncommitted worktree based on
+  `6ae5dd664dfe3d582b17b0abec16000fd2368ccc`.
+- Reviewed artifacts: `contracts/v1/README.md`
+  (`sha256:9fb4f4f8d9cceea0823c20f6d4e437b151d908e0b5a3cef3fbd6ed838eda4225`)
+  and `contracts/v1/artifacts.schema.json`
+  (`sha256:d519365163e23b1dc7d04226e2c4cf54108f28692d38793b8d0d9a717542b512`).
+- Reviewer and time: operator, 2026-11-28T08:15:54+02:00.
+- Procedure: present the artifact paths, schema, identity, dependency,
+  invalidation and reconciliation rules for operator review. The operator
+  accepted the contract as the v1 basis; no change request was provided.
+- Outcome: **accepted** as the v1 contract basis only.
+- Limitations: this is not N01 phase-gate acceptance. Host writes,
+  reconciliation, recovery, app-managed session dispatch and execution-path
+  qualification remain unverified.
 
 ## Historical port phase and gate ledger
 

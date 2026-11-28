@@ -1,0 +1,494 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:myforge:project-artifacts:1",
+  "title": "MyForge project artifact contract v1",
+  "oneOf": [
+    { "$ref": "#/$defs/idea" },
+    { "$ref": "#/$defs/research" },
+    { "$ref": "#/$defs/specification" },
+    { "$ref": "#/$defs/implementationPlan" },
+    { "$ref": "#/$defs/team" },
+    { "$ref": "#/$defs/review" },
+    { "$ref": "#/$defs/evidence" }
+  ],
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+    },
+    "nonEmptyText": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifactRef": {
+      "type": "object",
+      "required": ["artifactId", "definitionRevision"],
+      "properties": {
+        "artifactId": { "$ref": "#/$defs/identifier" },
+        "definitionRevision": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "baseArtifact": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "kind",
+        "artifactId",
+        "projectId",
+        "revision",
+        "definitionRevision",
+        "createdAt",
+        "updatedAt",
+        "definition"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "1.0" },
+        "kind": {
+          "enum": ["idea", "research", "specification", "implementation-plan", "team"]
+        },
+        "artifactId": { "$ref": "#/$defs/identifier" },
+        "projectId": { "$ref": "#/$defs/identifier" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "definitionRevision": { "type": "integer", "minimum": 1 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "definition": { "type": "object" }
+      }
+    },
+    "idea": {
+      "allOf": [
+        { "$ref": "#/$defs/baseArtifact" },
+        {
+          "properties": {
+            "kind": { "const": "idea" },
+            "definition": {
+              "type": "object",
+              "required": ["problemStatement", "intendedUsers", "outcomes", "constraints", "openQuestions"],
+              "properties": {
+                "problemStatement": { "$ref": "#/$defs/nonEmptyText" },
+                "intendedUsers": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/nonEmptyText" },
+                  "minItems": 1
+                },
+                "outcomes": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/nonEmptyText" },
+                  "minItems": 1
+                },
+                "constraints": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyText" } },
+                "openQuestions": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyText" } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "research": {
+      "allOf": [
+        { "$ref": "#/$defs/baseArtifact" },
+        {
+          "properties": {
+            "kind": { "const": "research" },
+            "definition": {
+              "type": "object",
+              "required": ["status", "sources", "findings", "limitations"],
+              "properties": {
+                "status": { "enum": ["in-progress", "complete", "blocked"] },
+                "sources": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "title", "url", "accessedAt"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "title": { "$ref": "#/$defs/nonEmptyText" },
+                      "url": { "type": "string", "format": "uri" },
+                      "accessedAt": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                },
+                "findings": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "summary", "sourceIds", "uncertainty"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "summary": { "$ref": "#/$defs/nonEmptyText" },
+                      "sourceIds": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/identifier" },
+                        "minItems": 1
+                      },
+                      "uncertainty": { "$ref": "#/$defs/nonEmptyText" }
+                    }
+                  }
+                },
+                "limitations": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyText" } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "specification": {
+      "allOf": [
+        { "$ref": "#/$defs/baseArtifact" },
+        {
+          "properties": {
+            "kind": { "const": "specification" },
+            "definition": {
+              "type": "object",
+              "required": ["sourceRefs", "userStories", "functionalRequirements", "constraints"],
+              "properties": {
+                "sourceRefs": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/artifactRef" },
+                  "minItems": 1
+                },
+                "userStories": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "title", "statement"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "title": { "$ref": "#/$defs/nonEmptyText" },
+                      "statement": { "$ref": "#/$defs/nonEmptyText" }
+                    }
+                  },
+                  "minItems": 1
+                },
+                "functionalRequirements": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "text", "storyIds", "acceptanceCriteria"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "text": { "$ref": "#/$defs/nonEmptyText" },
+                      "storyIds": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/identifier" },
+                        "minItems": 1
+                      },
+                      "acceptanceCriteria": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["id", "text"],
+                          "properties": {
+                            "id": { "$ref": "#/$defs/identifier" },
+                            "text": { "$ref": "#/$defs/nonEmptyText" }
+                          }
+                        },
+                        "minItems": 1
+                      }
+                    }
+                  },
+                  "minItems": 1
+                },
+                "constraints": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "text"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "text": { "$ref": "#/$defs/nonEmptyText" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "implementationPlan": {
+      "allOf": [
+        { "$ref": "#/$defs/baseArtifact" },
+        {
+          "type": "object",
+          "required": ["executionRevision", "execution"],
+          "properties": {
+            "kind": { "const": "implementation-plan" },
+            "executionRevision": { "type": "integer", "minimum": 0 },
+            "definition": {
+              "type": "object",
+              "required": ["specificationRef", "phases", "workItems"],
+              "properties": {
+                "specificationRef": { "$ref": "#/$defs/artifactRef" },
+                "teamRef": { "$ref": "#/$defs/artifactRef" },
+                "phases": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "title", "dependsOn", "gateCriteria"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "title": { "$ref": "#/$defs/nonEmptyText" },
+                      "dependsOn": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+                      "gateCriteria": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["id", "text"],
+                          "properties": {
+                            "id": { "$ref": "#/$defs/identifier" },
+                            "text": { "$ref": "#/$defs/nonEmptyText" }
+                          }
+                        },
+                        "minItems": 1
+                      }
+                    }
+                  },
+                  "minItems": 1
+                },
+                "workItems": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id",
+                      "phaseId",
+                      "title",
+                      "description",
+                      "ownerRole",
+                      "dependsOn",
+                      "specRequirementIds",
+                      "deliverables",
+                      "verification",
+                      "acceptanceCriteria"
+                    ],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "phaseId": { "$ref": "#/$defs/identifier" },
+                      "title": { "$ref": "#/$defs/nonEmptyText" },
+                      "description": { "$ref": "#/$defs/nonEmptyText" },
+                      "ownerRole": { "$ref": "#/$defs/nonEmptyText" },
+                      "dependsOn": { "type": "array", "items": { "$ref": "#/$defs/identifier" } },
+                      "specRequirementIds": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/identifier" },
+                        "minItems": 1
+                      },
+                      "deliverables": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/nonEmptyText" },
+                        "minItems": 1
+                      },
+                      "verification": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["id", "description", "expected"],
+                          "properties": {
+                            "id": { "$ref": "#/$defs/identifier" },
+                            "description": { "$ref": "#/$defs/nonEmptyText" },
+                            "command": { "type": "string" },
+                            "expected": { "$ref": "#/$defs/nonEmptyText" }
+                          }
+                        },
+                        "minItems": 1
+                      },
+                      "acceptanceCriteria": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": ["id", "text"],
+                          "properties": {
+                            "id": { "$ref": "#/$defs/identifier" },
+                            "text": { "$ref": "#/$defs/nonEmptyText" }
+                          }
+                        },
+                        "minItems": 1
+                      }
+                    }
+                  },
+                  "minItems": 1
+                }
+              }
+            },
+            "execution": {
+              "type": "object",
+              "required": ["workItems", "phases"],
+              "properties": {
+                "workItems": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "status", "evidenceIds"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "status": {
+                        "enum": ["pending", "in-progress", "completed", "blocked", "failed", "skipped"]
+                      },
+                      "evidenceIds": { "type": "array", "items": { "$ref": "#/$defs/identifier" } }
+                    }
+                  }
+                },
+                "phases": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "status", "evidenceIds"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "status": { "enum": ["pending", "in-progress", "passed", "blocked"] },
+                      "evidenceIds": { "type": "array", "items": { "$ref": "#/$defs/identifier" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "team": {
+      "allOf": [
+        { "$ref": "#/$defs/baseArtifact" },
+        {
+          "properties": {
+            "kind": { "const": "team" },
+            "definition": {
+              "type": "object",
+              "required": ["agents", "skills"],
+              "properties": {
+                "agents": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "name", "role", "ownedWorkItemIds"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "name": { "$ref": "#/$defs/nonEmptyText" },
+                      "role": { "$ref": "#/$defs/nonEmptyText" },
+                      "ownedWorkItemIds": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/identifier" }
+                      }
+                    }
+                  }
+                },
+                "skills": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "name", "source", "compatibility", "trust", "approvalState"],
+                    "properties": {
+                      "id": { "$ref": "#/$defs/identifier" },
+                      "name": { "$ref": "#/$defs/nonEmptyText" },
+                      "source": { "enum": ["built-in", "project", "external"] },
+                      "compatibility": { "$ref": "#/$defs/nonEmptyText" },
+                      "trust": { "$ref": "#/$defs/nonEmptyText" },
+                      "approvalState": {
+                        "enum": ["not-required", "pending", "approved", "rejected"]
+                      }
+                    },
+                    "allOf": [
+                      {
+                        "if": {
+                          "properties": { "source": { "const": "external" } },
+                          "required": ["source"]
+                        },
+                        "then": {
+                          "properties": {
+                            "approvalState": { "enum": ["pending", "approved", "rejected"] }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "review": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "kind",
+        "reviewId",
+        "projectId",
+        "targetArtifactId",
+        "targetDefinitionRevision",
+        "definitionDigest",
+        "sourceRefs",
+        "decision",
+        "reviewer",
+        "reviewedAt",
+        "comments"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "1.0" },
+        "kind": { "const": "review" },
+        "reviewId": { "$ref": "#/$defs/identifier" },
+        "projectId": { "$ref": "#/$defs/identifier" },
+        "targetArtifactId": { "$ref": "#/$defs/identifier" },
+        "targetDefinitionRevision": { "type": "integer", "minimum": 1 },
+        "definitionDigest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "sourceRefs": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              { "$ref": "#/$defs/artifactRef" },
+              {
+                "required": ["definitionDigest"],
+                "properties": {
+                  "definitionDigest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" }
+                }
+              }
+            ]
+          }
+        },
+        "decision": { "enum": ["approved", "changes-requested", "rejected"] },
+        "reviewer": { "type": "object", "required": ["type"], "properties": { "type": { "const": "human" } } },
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "comments": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyText" } }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "kind",
+        "evidenceId",
+        "projectId",
+        "phaseId",
+        "workItemId",
+        "attempt",
+        "mode",
+        "procedure",
+        "expected",
+        "actual",
+        "outcome",
+        "recordedAt",
+        "limitations"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "1.0" },
+        "kind": { "const": "evidence" },
+        "evidenceId": { "$ref": "#/$defs/identifier" },
+        "projectId": { "$ref": "#/$defs/identifier" },
+        "phaseId": { "$ref": "#/$defs/identifier" },
+        "workItemId": { "$ref": "#/$defs/identifier" },
+        "attempt": { "type": "integer", "minimum": 1 },
+        "mode": { "enum": ["app-session", "subagent", "manual", "other"] },
+        "worker": { "type": "object", "properties": { "id": { "$ref": "#/$defs/identifier" }, "role": { "type": "string" } } },
+        "procedure": { "$ref": "#/$defs/nonEmptyText" },
+        "expected": { "$ref": "#/$defs/nonEmptyText" },
+        "actual": { "$ref": "#/$defs/nonEmptyText" },
+        "outcome": { "enum": ["passed", "failed", "blocked", "skipped", "not-run"] },
+        "recordedAt": { "type": "string", "format": "date-time" },
+        "artifactRefs": { "type": "array", "items": { "$ref": "#/$defs/artifactRef" } },
+        "limitations": { "type": "array", "items": { "$ref": "#/$defs/nonEmptyText" } }
+      }
+    }
+  }
+}

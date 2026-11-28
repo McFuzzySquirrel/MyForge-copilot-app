@@ -33,6 +33,7 @@ Before completing the change:
 | [`plan.md`](../plan.md) | Project-level planning and direction. | Roadmap, priorities, or planned work changes. |
 | [`docs/copilot-app/IMPLEMENTATION-PLAN.md`](copilot-app/IMPLEMENTATION-PLAN.md) | Active canvas-led app direction, phased work, dependencies and gates. Not a generated project plan or executable manifest. | Approved app scope, capability findings, architecture or phase dependencies change. |
 | [`docs/copilot-app/evidence/README.md`](copilot-app/evidence/README.md) | Replacement evidence protocol and phase ledger, plus historical port findings; public records must be sanitized. | Checks execute, findings change or an operator accepts/rejects a gate. Do not fabricate runtime evidence. |
+| [`docs/copilot-app/contracts/v1/README.md`](copilot-app/contracts/v1/README.md) | Draft v1 schema and lifecycle rules for authoritative `.myforge/` project artifacts. | Artifact fields, storage paths, review invalidation, edit reconciliation or migration rules change. |
 | [`docs/copilot-app/probes/workflow-subagent/`](copilot-app/probes/workflow-subagent/README.md) | Opt-in app-managed subagent feasibility probe and procedure; not a production extension. | Probe behavior, safety instructions or host API assumptions change. |
 
 ### Product and user-facing documentation

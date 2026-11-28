@@ -88,12 +88,18 @@ not presented as active; historical findings remain accessible.
   app-managed session dispatch on a named app/version. Independently test the
   subagent fallback, identities, visibility, interruption and workspace limits.
   Reuse prior evidence only within its actual scope. An opt-in
-  [subagent probe](probes/workflow-subagent/README.md) is prepared but has not
-  been exercised in the app.
+  [subagent probe](probes/workflow-subagent/README.md) was run and established
+  only that one bounded worker can return its exact marker. A session-scoped
+  canvas probe confirmed canvas discovery, open/action routing
+  and read access to the project plan and session workspace on Copilot desktop
+  1.5.0. Separate session dispatch, specialist identity/isolation, visibility
+  and interruption/recovery remain unverified.
 - **N01-W02:** Define versioned authoritative project artifacts for idea,
   research, specification, implementation plan, review, team and evidence.
-  Decide paths only after testing the host workspace. Define stable IDs,
-  dependencies, edit reconciliation and review invalidation.
+  The [v1 contract basis](contracts/v1/README.md) selects `.myforge/` after a
+  read-access probe and has operator acceptance. Host write permissions,
+  reconciliation and recovery still require verification. The contract
+  defines stable IDs, dependencies, edit reconciliation and review invalidation.
 - **N01-W03:** Specify explicit mode selection and handoffs, failure handling,
   partial-work reconciliation and safe operator-led recovery. If no supported
   execution path exists, block visibly. Do not assume exactly-once dispatch,
