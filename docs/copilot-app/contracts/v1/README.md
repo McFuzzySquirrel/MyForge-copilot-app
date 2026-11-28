@@ -1,6 +1,7 @@
 # Project artifact contract v1
 
-**Status:** Accepted as the v1 contract basis; runtime implementation and host
+**Status:** Accepted as the v1 contract basis; the subsequent safe-editing
+clarification requires operator review. Runtime implementation and host
 qualification remain pending. This does not establish that the current Copilot
 host can safely write, reconcile or recover these artifacts.
 
@@ -76,7 +77,10 @@ cannot approve it.
 - Before saving, compare the draft's base revision/digest with the live
   artifact. If the file changed, reject the stale write and preserve the
   user's draft and live content for explicit reconciliation; never silently
-  overwrite either side.
+  overwrite either side. The comparison and replacement require a supported
+  conditional write or a boundary enforced across all writers. A separate
+  check followed by atomic rename is insufficient; block automated replacement
+  while no such mechanism is qualified.
 - Apply accepted edits atomically. Preserve unknown user fields or surface a
   conflict rather than dropping them during migration or re-serialization.
 - On recovery, reconcile files and append-only records first. Dispatch is not

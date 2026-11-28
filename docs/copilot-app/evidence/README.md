@@ -47,7 +47,7 @@ output in private session history rather than this public ledger.
 | Phase | Status | Evidence / gate |
 | --- | --- | --- |
 | N00 | Ready for review | E-N00-001; operator gate acceptance pending |
-| N01 | In progress | E-N01-001–E-N01-007; contract basis accepted; session dispatch and write/recovery checks pending |
+| N01 | Blocked | E-N01-001–E-N01-020; extension-origin session dispatch is disabled in the tested configuration; reconciliation, recovery and distribution remain unresolved |
 | N02 | Not started | Authoring pending |
 | N03 | Not started | Plan and team preparation pending |
 | N04 | Not started | Orchestrator execution pending |
@@ -223,6 +223,363 @@ output in private session history rather than this public ledger.
 - Limitations: this is not N01 phase-gate acceptance. Host writes,
   reconciliation, recovery, app-managed session dispatch and execution-path
   qualification remain unverified.
+
+### E-N01-008: app-managed conversation session handoff
+
+- Work: partial N01-W01. Evidence kind: live app conversation tool probe,
+  not extension integration. Date: 2026-11-28.
+- Source: `bdc09cffe062d85ba96c664ddf1882544b4e85a3`.
+- Environment: Copilot desktop `1.5.0`, bundled CLI declaration `1.0.115-7`,
+  SDK protocol `4`; local Linux worktree project. Private session identities
+  and paths remain in the session history.
+- Procedure: from the parent conversation, request a coordinated child project
+  session in a new worktree with a bounded marker-only kickoff. Inspect the
+  returned session metadata and received message, then inspect its change
+  overview and archive the finished child.
+- Expected: a separate app-managed session with a distinct identity and
+  worktree can return the requested marker to its coordinator.
+- Actual: the app created a child session and reported a distinct worktree
+  and session identity. The coordinator received `MYFORGE_SESSION_PROBE_OK`;
+  the change overview showed no changed files or commits, and the child was
+  archived.
+- Outcome: **passed** for the conversation tool's bounded creation and handoff
+  in this configuration.
+- Limitations: the child was created from the project default branch, not the
+  parent's current branch; no project edits, change integration, conflict
+  handling, interruption, recovery or host-enforced isolation were tested.
+  This does not establish that a canvas extension can invoke this app tool or
+  create a project session through its own SDK connection.
+
+### E-N01-009: corrections to prior evidence
+
+- Work: N01-W01/W02. Evidence kind: audit correction. Date: 2026-11-28.
+- E-N01-007 identifies the post-acceptance status-edited README digest as the
+  reviewed digest. The README presented for review instead had SHA-256
+  `44aaeac17fc6a81c3f205d3040832be39d3e0dd0dca36a7a1471649ddc5f6e5d`.
+  After acceptance, its status text was updated, yielding the digest recorded
+  in E-N01-007. The schema digest was unchanged. This corrects the identity
+  of the reviewed bytes, not the operator's decision.
+- E-N01-005's statement that the worker did not perform workspace operations
+  is stronger than the observation: it was instructed not to use tools or
+  inspect files, but the marker result alone does not independently prove
+  tool non-use. Its bounded-response result remains valid within that limit.
+- E-N01-004's no-write statement describes the read-only canvas action, not
+  setup: the session-scoped probe extension itself was written before loading.
+  The action did not test project artifact writes.
+- The v3.133 changelog's statement that the schema rejects unapproved external
+  skills is too broad: it rejects `approvalState: "not-required"` for an
+  external skill but permits `pending` and `rejected` recommendations. Schema
+  validation does not authenticate approval or enforce installation behavior.
+
+### E-N01-010: execution contract and distribution decision
+
+- Work: partial N01-W03/W04. Evidence kind: design documentation and operator
+  decision; not a runtime qualification. Date: 2026-11-28.
+- Source: `bdc09cffe062d85ba96c664ddf1882544b4e85a3` plus current worktree
+  documentation.
+- Procedure: document explicit mode selection, handoffs, failure handling and
+  operator-led recovery; ask the operator to choose project, user or plugin
+  distribution, or defer the choice.
+- Actual: the operator chose to **defer** distribution pending capability
+  qualification. The proposed
+  [execution contract](../contracts/v1/execution.md) requires visible blockers
+  and does not advertise an unqualified mode. A scoped link check found 44
+  local Markdown paths in the contract, implementation plan and documentation
+  map; all existed. Anchors were not checked.
+- Outcome: **blocked** for the N01 gate: extension-origin dispatch, workspace
+  writes/reconciliation, worker isolation and interruption/recovery,
+  distribution and contract review are not complete. This decision does not
+  authorize an installation.
+
+### E-N01-011: extension-origin session dispatch
+
+- Work: partial N01-W01. Evidence kind: live app extension probe.
+  Date: 2026-11-28. Operator: coordinating probe agent; human review pending.
+- Source: disposable worktree at
+  `6ae5dd664dfe3d582b17b0abec16000fd2368ccc`, with a temporary
+  session-scoped canvas scaffold that was removed after the check.
+- Environment: Linux, Copilot desktop `1.5.0`, serving runtime `1.0.115-7`;
+  bundled experimental canvas and session-management declarations. SDK package
+  and protocol versions were not independently established for this check.
+  A separately installed CLI reported `1.0.117` but was not used for dispatch.
+- Procedure: scaffold and reload a session-scoped canvas, confirm the provider
+  and action are available, open it and invoke its one-shot action once. The
+  action called `session.rpc.management.create` with a name and a marker-only
+  prompt requesting no tools, commands or file changes. It specified no model,
+  working directory, policy, permissions or handler overrides.
+- Expected: a host-managed session ID and an independently inspected terminal
+  marker handoff.
+- Actual: the action failed with `This session management tool is disabled`.
+  No session ID or terminal handoff was returned. No retry, CLI fallback or
+  additional worker was used. The scaffold and its lock were removed, the
+  extensions reloaded, and the disposable worktree was clean.
+- Outcome: **blocked** for extension-origin session dispatch in this
+  configuration. The result does not establish whether a host handler exists
+  or whether enabling policy would make the path usable. It does not qualify
+  writes, conflicts, interruption, recovery, isolation or visual rendering.
+  Probe identifiers and raw output remain in private session history.
+
+### E-N01-012: extension-origin workspace write probes
+
+- Work: partial N01-W01/W02. Evidence kind: live app extension probe.
+  Date: 2026-11-28. Operator: coordinating probe agent; human review pending.
+- Source and environment: the disposable worktree and app/runtime configuration
+  identified in E-N01-011, using a separate temporary session-scoped canvas.
+- Procedure: discover and open the canvas, then invoke its actions. One action
+  created a uniquely named repository-worktree fixture with Node `fs.writeFile`
+  and `wx`. Another created and read a distinct session-artifact fixture using
+  experimental `session.rpc.workspaces.createFile` and `readFile`. Independently
+  read both files. Open the repository fixture in the host editor; an extension
+  action then checked its base text, saved a separate exclusive copy and wrote
+  a different external version. Independently read both resulting versions.
+- Expected: the extension can write and read disposable fixtures; any
+  host-managed stale-draft behavior is established only through an actual
+  draft and conflict-resolution request.
+- Actual: both initial writes and reads returned the expected base text, and
+  independent reads confirmed the base copy and external version. The host
+  editor opened the repository fixture, but no unsaved draft or pending
+  whole-file resolution request was created. The inspected session-workspace
+  `createFile` declaration describes unconditional create/overwrite without
+  an expected-version parameter.
+- Outcome: **passed** for the listed extension-origin filesystem and
+  session-artifact write/read observations; **not-run** for host-managed
+  stale-draft reconciliation. The copied base and external versions show only
+  the probe's explicit preservation, not conflict detection, atomic
+  compare-and-swap or editor UI behavior. Session artifacts are not durable
+  project artifacts. Interruption and recovery were not tested.
+- Cleanup: the probe verified its fixture contents before removing its three
+  files, session-scoped scaffold and lock, then reloaded the provider. The
+  disposable worktree was clean. Opened editor/probe panels may remain and
+  point to removed content or a stale provider. Probe identifiers and raw
+  output remain in private session history.
+
+### E-N01-013: operator-assisted editor draft attempt
+
+- Work: partial N01-W02. Evidence kind: live app and human-assisted probe.
+  Date: 2026-11-28. Operator: @McFuzzySquirrel and the coordinating agent.
+- Source: `bdc09cffe062d85ba96c664ddf1882544b4e85a3` plus current worktree
+  documentation and a temporary fixture and session-scoped canvas. Environment:
+  the desktop and runtime identified in E-N01-011.
+- Procedure: create a disposable repository fixture, load a canvas action
+  prepared to replace only its expected base version, and open the fixture in
+  the host editor. Ask the operator to change its text and leave it unsaved,
+  then inspect the disk before invoking the external write.
+- Expected: the disk retains the base while the editor holds a distinct unsaved
+  draft, allowing an external write and a real stale-draft check.
+- Actual: the operator reported an edited, unsaved draft, but the inspected
+  disk already contained the requested draft text. The operator reported no
+  visible unsaved indicator or manual-save option. The external action was not
+  invoked. The fixture and temporary extension were removed after inspection;
+  extensions were reloaded. Their opened panels may remain stale.
+- Outcome: **blocked** for arranging this draft-conflict scenario; the
+  reconciliation check was **not-run**. The observation does not establish
+  when or why the disk changed, or prove that stale-draft handling is absent.
+  No conflict-resolution request or interruption/recovery was exercised.
+
+### E-N01-014: workflow fallback API research
+
+- Work: partial N01-W01/W03. Evidence kind: bundled SDK documentation and
+  historical evidence review, not a new real-host execution.
+  Date: 2026-11-28. Source: `bdc09cffe062d85ba96c664ddf1882544b4e85a3`
+  plus current worktree documentation.
+- Procedure: inspect the serving SDK's workflow documentation and declarations;
+  compare dispatch, observation, cancellation, checkpoint and recovery claims
+  with recorded P01 and N01 observations. Design a bounded cancellation and
+  operator-led recovery procedure with explicit consent and stop conditions.
+- Actual: the
+  [research note](../../research/copilot-app-workflow-fallback-qualification.md)
+  identifies experimental workflow APIs and distinguishes documented
+  semantics from prior host observations. Prior probes observed bounded
+  cancellation and checkpoint replay, but not safe recovery of an interrupted
+  working task. The existing N01 probe lacks the proposed cancellation and
+  recovery controls.
+- Outcome: **passed** for the listed documentation review and probe design;
+  the proposed probe was **not-run**. No additional worker was started, no
+  policy was changed and no app restart occurred. Fallback execution, real
+  task recovery and the N01 gate remain unqualified.
+
+### E-N01-015: workflow-owned worker cancellation
+
+- Work: partial N01-W01/W03. Evidence kind: live app extension probe reported
+  by a disposable project session; human gate review pending.
+- Authorization: the operator approved one bounded billable worker, a
+  session-scoped extension and cancellation, without restart, policy changes
+  or retries. Optional credit and active-time ceilings were not specified.
+  The run had a cumulative one-worker and one-concurrent-worker limit.
+- Source: disposable worktree commit
+  `6ae5dd664dfe3d582b17b0abec16000fd2368ccc`; temporary probe entry, logic and
+  local mock-test SHA-256 values respectively
+  `4cad256b2472d6d18db55d2af372b76a68a79b4dc722d7ee7ff96e80ba9089c4`,
+  `2fdc5f18c73b4776668912599608b75f0eddc26d4b060fe7a24e6da499412235`,
+  and `6f04bd271444aa8677a3f6a5ad1e6461e1753f881a32a7bc16448e69b671dd59`.
+  The temporary source was removed after the run; hashes alone do not make
+  the probe independently reproducible.
+- Environment: Linux, Copilot desktop `1.5.0`, serving CLI `1.0.115-7`,
+  Node `v24.22.2`; SDK package version unavailable. The bundled SDK
+  `extension.js` SHA-256 was
+  `11853a7a0e8cde9ed0c75d855b8b2877a1bfa47e2268145b8ce1de79b5bc9583`.
+- Procedure: inspect SDK declarations, run four local mock tests without
+  starting a worker, then load the temporary extension. On 2026-11-28 UTC,
+  start the workflow once at 06:59:18, record its run identity and journaled
+  nonce privately at its pre-dispatch checkpoint, resume once, observe the
+  worker active and issue one cancellation. Inspect the same run, its worker,
+  nonce, counts and workspace after settlement.
+- Expected: checkpoint with no workers; after resume, one observed active
+  worker; cancellation settles the same run and worker with zero live and one
+  total worker, and the nonce matches. No unexpected workspace changes.
+- Actual: the run paused at 06:59:19 with live/total workers 0/0. Attempt 2
+  began at 06:59:33; the worker started and was observed active with counts
+  1/1 at 06:59:36 and again immediately before cancellation at 06:59:39. The
+  cancel response and supervised resume settled as cancelled; the final
+  06:59:42 inspection reported the worker cancelled, counts 0/1 and matching
+  nonce. The worktree status and diffs were clean; session-file inventory
+  showed only a preexisting file and the private probe record.
+- Outcome: **passed** for this bounded cancellation and checkpoint
+  observation. The session-file baseline had no content hashes, so it does
+  not prove existing file contents were unchanged. A no-tools instruction is
+  not a sandbox; zero accounted spend at observation does not establish final
+  billing. Workspace isolation, routing, exactly-once behavior, project-session
+  cancellation and interrupted-task or restart recovery remain unqualified.
+- Cleanup: after settlement, the temporary extension files and lock were
+  removed, extensions reloaded, provider exit confirmed and the disposable
+  worktree remained clean. Run identities and raw result remain in the
+  disposable session's private record.
+
+### E-N01-016: active-worker interruption probe preparation
+
+- Work: partial N01-W01/W03. Evidence kind: disposable extension preparation
+  and local mock checks, not a live workflow interruption.
+  Date: 2026-11-28. Operator: coordinating probe agent.
+- Authorization: the operator chose probe preparation and separately authorized
+  one worker and an operator-led app quit and reopen for the interruption
+  probe. No retry or replacement worker was authorized. The worker and app
+  quit have not been initiated.
+- Source: disposable worktree commit
+  `6ae5dd664dfe3d582b17b0abec16000fd2368ccc`; prepared session-scoped probe
+  entry, logic and test SHA-256 values respectively
+  `4cad256b2472d6d18db55d2af372b76a68a79b4dc722d7ee7ff96e80ba9089c4`,
+  `720a723e795766c372742a46294cee4940e3bd8e7d650da289555f666765d4d8`
+  and `b967bab1cd0326b8f3abae73c5f7c0ec260cd46fa5944da6e0f940bfbfa8e6a8`.
+  The prepared files and private preparation record remain in the disposable
+  session for the proposed run.
+- Environment: Linux, Copilot desktop `1.5.0`, serving CLI `1.0.115-7`.
+- Procedure: prepare and register a temporary session-scoped extension with
+  a durable one-shot guard, private run identity and journaled nonce before
+  dispatch, and run-ID-based read-only inspection. Execute six offline mock
+  tests; inspect registration, initial readiness and worktree status.
+- Actual: the tests passed, the provider was running, the one-shot guard and
+  run identity did not yet exist, and the worktree was clean. The prepared
+  workflow limits total and concurrent workers to one, with no unspecified
+  credit or active-time ceilings. The extension exposes no resume or cancel
+  tool.
+- Outcome: **passed** for the listed preparation and mock checks only;
+  active-worker interruption and recovery are **not-run**. Registration and
+  storage survival after a real restart remain unverified. A no-tools prompt
+  does not establish isolation, and an ambiguous start or worker state must
+  not be retried or treated as inactive.
+
+### E-N01-017: active-worker interruption attempt
+
+- Work: partial N01-W01/W03. Evidence kind: live app probe reported by the
+  disposable session; human gate review pending. Date: 2026-11-28.
+- Source, environment, authorization and probe hashes: E-N01-016. The
+  operator was instructed to fully quit and reopen the app only after an
+  active-worker observation. No replacement or retry was authorized.
+- Procedure: start once, persist the run identity and journaled nonce, observe
+  the run and its single direct worker, then inspect that same run read-only
+  after provider reconnection. Compare provider identity, nonce, status, counts
+  and workspace; do not resume, cancel, retry or dispatch a replacement.
+- Operator confirmation: the operator subsequently confirmed that the app
+  actually quit and was also killed via task manager. The exact action
+  sequence and timing relative to worker settlement were not recorded.
+- Actual: at 07:14:47.680 UTC the run and worker were observed running with
+  live/total workers 1/1. Later inspection found the same run in `error`
+  with `Worker returned no text`, a cancelled worker and live/total counts
+  0/1; the journal and private identity retained the same nonce. The new
+  provider process could inspect that run and differed from the earlier
+  provider process. The run reported it could be resumed, but was not resumed.
+  The worktree had no project edits. Session inventory showed the expected
+  probe files and preserved prior private artifacts.
+- Outcome: **passed** for rediscovery of the observed run and its nonce after
+  provider reconnection; **inconclusive** for interruption causality. The
+  worker's final update preceded the newly observed provider startup, but the
+  timing of the operator-confirmed app termination was not established: the
+  worker could have settled before termination. This does not demonstrate
+  interrupted-task recovery,
+  isolation, final billing, or exactly-once execution. The prepared provider
+  and private records remain in the disposable session.
+
+### E-N01-018: workspace draft investigation
+
+- Work: partial N01-W02. Evidence kind: host tool inspection and
+  operator-assisted workspace fixture attempt. Date: 2026-11-28.
+  Source: `bdc09cffe062d85ba96c664ddf1882544b4e85a3` plus current
+  worktree documentation.
+- Procedure: inspect available editor-canvas actions and the host draft
+  conflict tool descriptions. Create a disposable text fixture and ask the
+  operator to edit it in the workspace view without saving; independently
+  inspect the disk before any external write.
+- Actual: the editor canvas advertised no agent-callable editing actions.
+  The conflict-read tool requires a path and request ID from a pending
+  whole-file draft resolution; the completion tool requires the complete
+  resolution set. The operator reported the workspace edit saved
+  automatically; disk contained the draft text. No external write was
+  attempted. The disposable fixture was removed after inspection.
+- Outcome: **blocked** for arranging an unsaved-draft scenario; conflict
+  resolution was **not-run**. This observation does not establish that the
+  host lacks unsaved drafts or conflict handling, nor does host draft
+  resolution alone qualify a future MyForge canvas implementation.
+
+### E-N01-019: stale-write filesystem experiment
+
+- Work: partial N01-W02. Evidence kind: local filesystem test, not MyForge
+  runtime or host integration. Date: 2026-11-28. Operator: agent.
+- Source: `bdc09cffe062d85ba96c664ddf1882544b4e85a3` plus the uncommitted
+  [experiment](../probes/stale-write/README.md); test SHA-256
+  `4aad38132dacbd97a084c43889c4581a976fe6beedac11cb1ae1265645bc2494`.
+  Environment: Linux, Node `v24.22.2`.
+- Procedure: run `node --test docs/copilot-app/probes/stale-write/stale-write.test.mjs`
+  using separate temporary fixtures. Check a stale base, an unchanged base,
+  and an external write intentionally interleaved after the digest check but
+  before atomic rename.
+- Expected: a preexisting stale write is rejected with draft and live content
+  preserved; the unchanged case saves; the interleaved write demonstrates
+  whether this candidate protects a concurrent external change.
+- Actual: all three tests passed. The stale case preserved both versions and
+  the unchanged case saved. The interleaved external write was overwritten
+  despite atomic rename; the test deliberately asserts this unsafe result.
+- Outcome: **passed** for the local observations, **failed** as a safe
+  arbitrary-writer save strategy. This demonstrates a check-to-rename race,
+  not host draft behavior, production safety or a validated implementation.
+  Conditional atomic writes or an enforced boundary covering all writers
+  remain necessary; otherwise saving must be blocked. Temporary test
+  directories were removed by the test cleanup.
+
+### E-N01-020: conditional-write boundary inspection
+
+- Work: partial N01-W02. Evidence kind: current bundled SDK declaration and
+  available host-tool description inspection; not a runtime concurrency test.
+  Date: 2026-11-28. Source: `bdc09cffe062d85ba96c664ddf1882544b4e85a3`
+  plus current worktree documentation.
+- Procedure: inspect bundled `generated/rpc.d.ts` declarations for session
+  workspace file creation and reads, search SDK declarations for conditional
+  file-write/version parameters, and inspect the exposed whole-file
+  draft-conflict tool contracts.
+- Actual: `WorkspacesCreateFileRequest` has `path` and `content` and describes
+  creating or overwriting a file in the **session** workspace files directory;
+  it exposes no expected-version parameter. `WorkspacesReadFileResult` returns
+  content, not a version token. The inspected host draft tools require a
+  pending whole-file resolution request, with a matching draft-set revision
+  and complete resolved set; a supplied expected disk version rejects a stale
+  resolution. Their descriptions do not establish that an extension can
+  initiate that request or use the tools as a project-artifact conditional
+  write API. E-N01-018 did not produce such a request.
+- Outcome: **blocked** for a qualified extension-origin conditional write or
+  an enforced boundary covering external project-file writers. This targeted
+  inspection is not proof that no other API exists. Do not silently relax the
+  artifact contract or claim atomic compare-and-swap from a digest check and
+  rename. Until a suitable mechanism is demonstrated, automatic replacement of
+  concurrently editable artifacts must remain blocked.
 
 ## Historical port phase and gate ledger
 

@@ -14,7 +14,7 @@
 
 > MyForge turns an idea into a reviewed PRD, a specialist agent team, and an autonomous build.
 
-**Latest: v3.133** — see [docs/updates.md](docs/updates.md) for release notes.
+**Latest: v3.134** — see [docs/updates.md](docs/updates.md) for release notes.
 
 ## Table of Contents
 

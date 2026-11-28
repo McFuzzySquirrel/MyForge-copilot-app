@@ -4,6 +4,39 @@ Detailed release and change notes for MyForge.
 
 ---
 
+## November 2026 - v3.134
+
+### Changed
+
+- Recorded a bounded app-managed session handoff and a proposed execution and
+  recovery contract. Extension-origin dispatch and recovery remain unqualified;
+  distribution was deferred and the N01 gate remains blocked.
+- Corrected prior evidence about reviewed contract bytes and the scope of
+  earlier probe observations.
+- An extension-origin session dispatch attempt was blocked by the tested
+  configuration's disabled session-management tool; no admission was established.
+- A disposable extension wrote a repository fixture and a session artifact;
+  an operator-assisted attempt could not establish an unsaved draft, so
+  host-managed stale-draft reconciliation remains untested.
+- Documented workflow fallback API findings and a consent-gated cancellation
+  probe design, without claiming interrupted-task recovery is qualified.
+- Observed one bounded workflow-owned worker cancellation after an explicit
+  operator-approved checkpoint and resume; task recovery remains unqualified.
+- Prepared a one-shot interruption probe without starting its worker or
+  restarting the app.
+- A subsequent interruption attempt recovered the run's status and nonce
+  after provider reconnection. The operator confirmed app termination, but its
+  timing relative to the worker stopping was not established.
+- A workspace-view draft attempt saved the disposable fixture, leaving actual
+  host draft-conflict resolution untested.
+- A local stale-write experiment demonstrated that checking a digest before
+  atomic rename still loses an external write between the check and rename.
+- Inspected available workspace and draft-resolution contracts; an
+  extension-origin conditional project-file write remains unqualified, so
+  automated replacement must remain blocked.
+
+---
+
 ## November 2026 - v3.133
 
 ### Changed

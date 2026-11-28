@@ -33,8 +33,11 @@ Before completing the change:
 | [`plan.md`](../plan.md) | Project-level planning and direction. | Roadmap, priorities, or planned work changes. |
 | [`docs/copilot-app/IMPLEMENTATION-PLAN.md`](copilot-app/IMPLEMENTATION-PLAN.md) | Active canvas-led app direction, phased work, dependencies and gates. Not a generated project plan or executable manifest. | Approved app scope, capability findings, architecture or phase dependencies change. |
 | [`docs/copilot-app/evidence/README.md`](copilot-app/evidence/README.md) | Replacement evidence protocol and phase ledger, plus historical port findings; public records must be sanitized. | Checks execute, findings change or an operator accepts/rejects a gate. Do not fabricate runtime evidence. |
-| [`docs/copilot-app/contracts/v1/README.md`](copilot-app/contracts/v1/README.md) | Draft v1 schema and lifecycle rules for authoritative `.myforge/` project artifacts. | Artifact fields, storage paths, review invalidation, edit reconciliation or migration rules change. |
+| [`docs/copilot-app/contracts/v1/README.md`](copilot-app/contracts/v1/README.md) | Accepted v1 contract basis and schema for authoritative `.myforge/` project artifacts; clarification review, implementation and host qualification are pending. | Artifact fields, storage paths, review invalidation, edit reconciliation or migration rules change. |
+| [`docs/copilot-app/contracts/v1/execution.md`](copilot-app/contracts/v1/execution.md) | Proposed execution mode, handoff, failure and recovery contract; host qualification is separate. | Execution modes, host capabilities, safety requirements or recovery decisions change. |
 | [`docs/copilot-app/probes/workflow-subagent/`](copilot-app/probes/workflow-subagent/README.md) | Opt-in app-managed subagent feasibility probe and procedure; not a production extension. | Probe behavior, safety instructions or host API assumptions change. |
+| [`docs/copilot-app/probes/stale-write/`](copilot-app/probes/stale-write/README.md) | Local stale-write race experiment, not a production artifact store. | Experiment behavior or limitations change. |
+| [`docs/research/copilot-app-workflow-fallback-qualification.md`](research/copilot-app-workflow-fallback-qualification.md) | Workflow fallback API findings, historical host evidence and proposed bounded probe; not a qualification. | Fallback API findings, evidence limits or the proposed qualification procedure change. |
 
 ### Product and user-facing documentation
 

@@ -89,25 +89,54 @@ not presented as active; historical findings remain accessible.
   subagent fallback, identities, visibility, interruption and workspace limits.
   Reuse prior evidence only within its actual scope. An opt-in
   [subagent probe](probes/workflow-subagent/README.md) was run and established
-  only that one bounded worker can return its exact marker. A session-scoped
-  canvas probe confirmed canvas discovery, open/action routing
-  and read access to the project plan and session workspace on Copilot desktop
-  1.5.0. Separate session dispatch, specialist identity/isolation, visibility
-  and interruption/recovery remain unverified.
+  only that one bounded worker can return its exact marker. Session-scoped
+  canvas probes confirmed discovery, open/action routing, read access and
+  limited extension-origin writes on Copilot desktop 1.5.0
+  ([E-N01-012](evidence/README.md#e-n01-012-extension-origin-workspace-write-probes)).
+  An app conversation created a separate worktree session and received
+  its marker handoff. A separate extension-origin dispatch attempt returned
+  that session management was disabled
+  ([E-N01-011](evidence/README.md#e-n01-011-extension-origin-session-dispatch)).
+  Specialist identity/isolation and interruption/recovery remain unverified.
+  The [fallback qualification research](../research/copilot-app-workflow-fallback-qualification.md)
+  distinguishes documented workflow APIs from historical host observations.
+  A bounded workflow-owned worker cancellation was observed
+  ([E-N01-015](evidence/README.md#e-n01-015-workflow-owned-worker-cancellation));
+  a separate interruption attempt recovered run observation but could not
+  establish whether app quit caused the worker to stop
+  ([E-N01-017](evidence/README.md#e-n01-017-active-worker-interruption-attempt)).
+  Neither qualifies interrupted-task recovery.
 - **N01-W02:** Define versioned authoritative project artifacts for idea,
   research, specification, implementation plan, review, team and evidence.
   The [v1 contract basis](contracts/v1/README.md) selects `.myforge/` after a
-  read-access probe and has operator acceptance. Host write permissions,
-  reconciliation and recovery still require verification. The contract
-  defines stable IDs, dependencies, edit reconciliation and review invalidation.
+  read-access probe and has operator acceptance. A disposable extension wrote
+  a repository fixture, but an operator-assisted attempt did not establish an
+  unsaved editor draft
+  ([E-N01-013](evidence/README.md#e-n01-013-operator-assisted-editor-draft-attempt)).
+  A workspace-view attempt also saved the fixture
+  ([E-N01-018](evidence/README.md#e-n01-018-workspace-draft-investigation)).
+  A local stale-write experiment rejected an already-stale draft but exposed a
+  check-to-rename race with an external writer
+  ([E-N01-019](evidence/README.md#e-n01-019-stale-write-filesystem-experiment)).
+  The inspected session-workspace write API is unconditional; the host's
+  conditional draft-resolution tools require a pending request and have not
+  been qualified as an extension project-artifact write API
+  ([E-N01-020](evidence/README.md#e-n01-020-conditional-write-boundary-inspection)).
+  Until a suitable boundary is demonstrated, automated replacement must remain
+  blocked rather than rely on check-then-rename.
+  Host-managed reconciliation and recovery still require verification. The
+  contract defines stable IDs, dependencies, edit reconciliation and review
+  invalidation.
 - **N01-W03:** Specify explicit mode selection and handoffs, failure handling,
   partial-work reconciliation and safe operator-led recovery. If no supported
   execution path exists, block visibly. Do not assume exactly-once dispatch,
-  parallel isolation or continuation after app closure.
+  parallel isolation or continuation after app closure. The proposed
+  [execution contract](contracts/v1/execution.md) requires operator review.
 - **N01-W04:** Record the tested Copilot app and API versions; resolve
   distribution, permissions and storage decisions before dependent work. Rely
   on the app's supported platforms rather than creating a separate OS support
   matrix; document a platform-specific limitation if actually encountered.
+  Distribution was deferred by the operator and remains unresolved.
 
 **Gate:** A reviewed contract and real-host evidence establish an execution
 path. Missing capabilities remain blocked, never passed by mock.
